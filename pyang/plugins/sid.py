@@ -462,7 +462,6 @@ class SidFile:
 
         for key in self.content:
             if key == 'module-name':
-                # Further validation will be done during searching the module
                 module_name_absent = False
 
             elif key == 'module-revision':
