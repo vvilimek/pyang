@@ -702,8 +702,7 @@ class SidFile:
                 self.collect_inner_data_nodes(statement.i_children)
 
             elif statement.keyword == 'rpc':
-                self.merge_item('data',
-                                "/%s:%s" % (self.module_name, statement.arg))
+                self.merge_item('data', self.get_path(statement))
                 for substmt in statement.i_children:
                     if substmt.keyword in self.inrpc_keywords:
                         # RFC 9595, Appendix B require to create SID for all
