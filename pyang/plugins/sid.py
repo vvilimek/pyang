@@ -670,6 +670,13 @@ class SidFile:
         except AttributeError:
             return False
 
+    @staticmethod
+    def has_yang_structure_extension(statement):
+        try:
+            return statement.i_extension.arg == 'structure'
+        except AttributeError:
+            return False
+
     ########################################################
     # Collection of items defined in .yang file(s)
     def collect_module_items(self, module):
@@ -756,8 +763,13 @@ class SidFile:
                 if self.sid_extension:
                     if statement.keyword == "list": # if list add list-id : [key-id, ...]
                         keys = []
-                        for k in statement.i_key:
-                            keys.append(self.get_path(k, prefix))
+                        
+                        try: # LT don't kwon to check if i_key is present
+                            for k in statement.i_key:
+                                keys.append(self.get_path(k, prefix))
+                        except:
+                            pass
+
                         self.content["key-mapping"][self.get_path(statement, prefix)] = keys
                 self.collect_inner_data_nodes(statement.i_children, prefix)
 
@@ -851,6 +863,7 @@ class SidFile:
 
             statement = statement.parent
 
+        print ("<=", prefix, '+', path)
         return prefix + path
 
     def merge_item(self, namespace, identifier, typename=None):
@@ -1017,7 +1030,7 @@ class SidFile:
 
         print("\nSID        Assigned to")
         print("---------  --------------------------------------------------")
-        items = self.content['item']
+        items = self.content['items']
         if items is not None:
             items.sort(key=lambda item: item['sid'])
         for item in items:
@@ -1056,7 +1069,7 @@ class SidFile:
         r"at (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)")
     
     def find_sid(self, id):
-        for e in self.content['items']:
+        for e in self.content['item']:
             if e['identifier'] == id:
                 return e['sid']
         return None
