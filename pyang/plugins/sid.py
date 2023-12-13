@@ -810,9 +810,7 @@ class SidFile:
                                         type_descr[enum_val] = enum_name
                         else:
                             type_descr = stmt.arg
-
-                    
-                    
+                     
                 self.merge_item('data', self.get_path(statement), type_descr)
                 self.merge_item('data', self.get_path(statement))
 
