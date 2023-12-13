@@ -1030,7 +1030,7 @@ class SidFile:
 
         print("\nSID        Assigned to")
         print("---------  --------------------------------------------------")
-        items = self.content['item']
+        items = self.content['items']
         if items is not None:
             items.sort(key=lambda item: item['sid'])
         for item in items:
@@ -1069,7 +1069,7 @@ class SidFile:
         r"at (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)")
     
     def find_sid(self, id):
-        for e in self.content['items']:
+        for e in self.content['item']:
             if e['identifier'] == id:
                 return e['sid']
         return None
