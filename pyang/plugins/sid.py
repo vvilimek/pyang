@@ -1030,6 +1030,7 @@ class SidFile:
 
         print("\nSID        Assigned to")
         print("---------  --------------------------------------------------")
+        print (self.content)
         items = self.content['items']
         if items is not None:
             items.sort(key=lambda item: item['sid'])
