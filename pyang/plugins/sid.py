@@ -1071,6 +1071,7 @@ class SidFile:
     def find_sid(self, id):
         for e in self.content['item']:
             if e['identifier'] == id:
+                print(e['identifier'], id)
                 return e['sid']
         return None
 
