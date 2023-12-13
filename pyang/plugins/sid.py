@@ -1004,6 +1004,7 @@ class SidFile:
             print ("<", self.content)
             self.content['key-mapping'] = key_mapping_sid
             print (">", self.content)
+            myorderedstuff['key-mapping'] = key_mapping_sid
 
 
         with open(self.output_file_name, 'w') as outfile:
