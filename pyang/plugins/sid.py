@@ -598,9 +598,6 @@ class SidFile:
         if 'item' not in self.content:
             self.content['item'] = []
 
-        if self.sid_extension and 'key-mapping' not in self.content: 
-            self.content['key-mapping'] = {}
-
         for item in self.content['item']:
             item['lifecycle'] = 'd' # Set to 'd' deleted, updated to 'o' if present in .yang file
 
@@ -749,23 +746,15 @@ class SidFile:
         #print ("<=", prefix, '+', path)
         return prefix + path
 
-    def merge_item(self, namespace, identifier, typename=None):
+    def merge_item(self, namespace, identifier):
         for item in self.content['item']:
             if (namespace == item['namespace'] and identifier == item['identifier']):
                 item['lifecycle'] = 'o' # Item already assigned
                 return
-
-        if self.sid_extension and typename != None:
-            self.content['item'].append(collections.OrderedDict(
-                [('namespace', namespace), ('identifier', identifier),
-                ('status', 'unstable'),
-                ('sid', -1), ('lifecycle', 'n'),
-                ('type', typename)]))
-        else:
-            self.content['item'].append(collections.OrderedDict(
-                [('namespace', namespace), ('identifier', identifier),
-                ('status', 'unstable'),
-                ('sid', -1), ('lifecycle', 'n')]))
+        self.content['item'].append(collections.OrderedDict(
+            [('namespace', namespace), ('identifier', identifier),
+             ('status', 'unstable'),
+             ('sid', -1), ('lifecycle', 'n')]))
         self.is_consistent = False
 
     ########################################################
