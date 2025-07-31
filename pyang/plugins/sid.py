@@ -517,6 +517,21 @@ class SidFile:
                     raise SidFileError("key 'item', invalid value.")
                 self.validate_items(self.content[key])
 
+            elif key == 'sid-file-version':
+                if not isinstance(self.content[key], int):
+                    raise SidFileError("key 'sid-file-version', invalid value.")
+
+                if self.content[key] < 0 or self.content[key] >= 2**32:
+                    raise SidFileError("key 'sid-file-version out of valid range (uint32)")
+
+            elif key == 'sid-file-status':
+                if self.content[key] not in self.SID_FILE_STATUSES:
+                    raise SidFileError("key 'sid-file-status' has invalid enum value")
+
+            elif key == 'description':
+                if not isinstance(self.content[key], str):
+                    raise SidFileError("key 'description', invalid value.")
+
             else:
                 raise SidFileError("invalid field '%s'." % key)
 
@@ -1077,23 +1092,6 @@ class SidFile:
                     print("  finalized %s" % (item['identifier']))
                     # status 'stable' is default enum
                     del item['status']
-
-        if self.sid_extension:
-            key_mapping_sid = {}
-            for k, v in self.content['key-mapping'].items():
-                k_sid = self.find_sid(k)
-                v_sids = []
-                for e in v:
-                    v_sids.append(self.find_sid(e))
-                key_mapping_sid[k_sid] = v_sids
-
-                print (key_mapping_sid)
-
-            #print ("<", self.content)
-            self.content['key-mapping'] = key_mapping_sid
-            #print (">", self.content)
-            myorderedstuff['key-mapping'] = key_mapping_sid
-
 
         with open(self.output_file_name, 'w') as outfile:
             outfile.truncate(0)
