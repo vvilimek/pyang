@@ -464,13 +464,8 @@ class SidFile:
         module_name_absent = True
 
         for key in self.content:
-            if key == 'assignment-range':
-                assignment_ranges_absent = False
-                if not isinstance(self.content[key], list):
-                    raise SidFileError("key 'assignment-range', invalid  value.")
-                self.validate_ranges(self.content[key])
-
-            elif key == 'module-name':
+            if key == 'module-name':
+                # Further validation will be done during searching the module
                 module_name_absent = False
 
             elif key == 'module-revision':
@@ -516,21 +511,6 @@ class SidFile:
                 if not isinstance(self.content[key], list):
                     raise SidFileError("key 'item', invalid value.")
                 self.validate_items(self.content[key])
-
-            elif key == 'sid-file-version':
-                if not isinstance(self.content[key], int):
-                    raise SidFileError("key 'sid-file-version', invalid value.")
-
-                if self.content[key] < 0 or self.content[key] >= 2**32:
-                    raise SidFileError("key 'sid-file-version out of valid range (uint32)")
-
-            elif key == 'sid-file-status':
-                if self.content[key] not in self.SID_FILE_STATUSES:
-                    raise SidFileError("key 'sid-file-status' has invalid enum value")
-
-            elif key == 'description':
-                if not isinstance(self.content[key], str):
-                    raise SidFileError("key 'description', invalid value.")
 
             else:
                 raise SidFileError("invalid field '%s'." % key)
