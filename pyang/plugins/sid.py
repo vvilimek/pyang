@@ -118,6 +118,7 @@ class SidPlugin(plugin.PyangPlugin):
 
         if ctx.opts.update_sid_file is not None:
             sid_file.input_file_name = ctx.opts.update_sid_file
+            sid_file.update = True
 
         if ctx.opts.check_sid_file is not None:
             sid_file.input_file_name = ctx.opts.check_sid_file
@@ -308,7 +309,7 @@ class SidFile:
         self.module_name = ''
         self.module_revision = ''
         self.output_file_name = ''
-        self.sid_extension = False
+        self.update = False
 
     def process_sid_file(self, module):
         self.module_name = module.i_modulename
@@ -966,7 +967,9 @@ class SidFile:
         sid_cont['module-name'] = self.content['module-name']
         if self.content['module-revision'] != 'unknown':
             sid_cont['module-revision'] = self.content['module-revision']
-        # TODO sid-file-version
+        if self.update:
+            curr = self.content.get('sid-file-version', 0)
+            sid_cont['sid-file-version'] = curr + 1
         if not self.finalize_sid:
             sid_cont['sid-file-status'] = 'unpublished'
         descr = self.content.get('description', None)
@@ -999,8 +1002,8 @@ class SidFile:
             for item in sid_cont['item']:
                 if item['status'] == 'unstable':
                     print("  finalized %s" % (item['identifier']))
-                    # TODO
-                    item['status'] = self.module_revision
+                    # status 'stable' is default enum
+                    del item['status']
 
         if self.sid_extension:
             key_mapping_sid = {}
