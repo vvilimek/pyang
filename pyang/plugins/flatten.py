@@ -494,3 +494,10 @@ class FlattenPlugin(plugin.PyangPlugin):
                     xpath_element = "%s[%s]" % (xpath_element, node_key)
             xpath_elements.append(xpath_element)
         return "/%s" % "/".join(xpath_elements)
+  
+    def get_root_module(self, ctx, stmt):
+        xpath = statements.get_xpath(stmt,
+                            prefix_to_module=(not ctx.opts.flatten_prefix_in_xpath),
+                            qualified=ctx.opts.flatten_qualified_in_xpath,
+                            with_keys=ctx.opts.flatten_keys_in_xpath)
+        return xpath.split('/')[1]
