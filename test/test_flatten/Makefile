@@ -54,3 +54,5 @@ test_rootmodule:
 test_ref_units_mand_def:
 	pyang -f flatten  --flatten-reference --flatten-units --flatten-mandatory --flatten-default ietf-interfaces.yang ietf-yang-types.yang interfaces-ext.yang | diff benchmarks/ietf-interfaces.ref-units-mand-def.csv -
 
+test_rootmodule:
+	pyang -f flatten --flatten-rootmodule ietf-interfaces.yang ietf-yang-types.yang interfaces-ext.yang | diff benchmarks/ietf-interfaces.rootmodule.csv -
