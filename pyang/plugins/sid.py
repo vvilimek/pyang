@@ -139,6 +139,9 @@ class SidPlugin(plugin.PyangPlugin):
         if ctx.opts.list_sid:
             sid_file.list_content = True
 
+        if ctx.opts.sid_ext:
+            sid_file.sid_extension = True
+
         if ctx.opts.finalize_sid:
             print("Will mark unstable allocations finalized")
             sid_file.check_consistency = False
@@ -234,6 +237,11 @@ OPTIONS
 
   $ pyang --sid-check-file toaster@2009-12-28.sid toaster@2009-12-28.yang
 
+--sid-extenstion
+
+   Add non standard entries in the .sid file to facilitate CORECONF manipulation
+   on constrained devices. 
+
 --sid-list
 
   The --sid-list option can be used before any of the previous options to
@@ -309,6 +317,7 @@ class SidFile:
         self.module_revision = ''
         self.output_file_name = ''
         self.update = False
+	self.sid_extension = False
 
     def process_sid_file(self, module):
         self.module_name = module.i_modulename
@@ -461,13 +470,7 @@ class SidFile:
                 module_name_absent = False
 
             elif key == 'module-revision':
-                if not isinstance(self.content[key], str):
-                    raise SidFileError("key 'module-revision', " +
-                        "invalid value")
-                if not re.match("[0-9]{4}-[0-9]{2}-[0-9]{2}",
-                                self.content[key]):
-                    raise SidFileError("key 'module-revision', " +
-                        "invalid format")
+                module_revision_absent = False
 
             elif key == 'sid-file-version':
                 if not isinstance(self.content[key], int):
@@ -510,6 +513,8 @@ class SidFile:
         if module_name_absent:
             raise SidFileError("mandatory field 'module-name' not present")
 
+        if module_revision_absent:
+            raise SidFileError("mandatory field 'module-revision' not present")
 
     @staticmethod
     def validate_dep_revisions(revisions):
@@ -530,76 +535,71 @@ class SidFile:
 
     @staticmethod
     def validate_ranges(ranges):
-        for arange in ranges:
-            entry_point_absent = True
-            size_absent = True
+        entry_point_absent = True
+        size_absent = True
 
+        for arange in ranges:
             for key in arange:
                 if key == 'entry-point':
                     entry_point_absent = False
                     if not isinstance(arange[key], util.int_types):
-                        raise SidFileError("invalid 'entry-point' value '%s'."
-                                           % arange[key])
+                        raise SidFileError("invalid 'entry-point' value '%s'." % arange[key])
 
                 elif key == 'size':
                     size_absent = False
                     if not isinstance(arange[key], util.int_types):
-                        raise SidFileError("invalid 'size' value '%s'."
-                                           % arange[key])
+                        raise SidFileError("invalid 'size' value '%s'." % arange[key])
 
                 else:
                     raise SidFileError("invalid key '%s'." % key)
 
-            if entry_point_absent:
-                raise SidFileError("mandatory field 'entry-point' not present")
+        if entry_point_absent:
+            raise SidFileError("mandatory field 'entry-point' not present")
 
-            if size_absent:
-                raise SidFileError("mandatory field 'size' not present")
+        if size_absent:
+            raise SidFileError("mandatory field 'size' not present")
 
-    item_namespaces = ('module', 'identity', 'feature', 'data')
-    item_statuses = ('unstable', 'stable', 'obsolete')
+    namespace_ends = ('module', 'identity', 'feature', 'data')
 
     def validate_items(self, items):
+        namespace_absent = True
+        identifier_absent = True
+        sid_absent = True
+        status_absent = True
         for item in items:
-            namespace_absent = True
-            identifier_absent = True
-            sid_absent = True
-
             for key in item:
                 if key == 'namespace':
                     namespace_absent = False
-                    if item[key] not in self.item_namespaces:
-                        raise SidFileError("invalid 'namespace' value '%s'."
-                                           % item[key])
+                    if not (isinstance(item[key], str)
+                            and item[key].endswith(self.namespace_ends)):
+                        raise SidFileError("invalid 'namespace' value '%s'." % item[key])
 
                 elif key == 'identifier':
                     identifier_absent = False
                     if not isinstance(item[key], str):
-                        raise SidFileError("invalid 'identifier' value '%s'."
-                                           % item[key])
+                        raise SidFileError("invalid 'identifier' value '%s'." % item[key])
 
                 elif key == 'sid':
                     sid_absent = False
                     if not isinstance(item[key], util.int_types):
-                        raise SidFileError("invalid 'sid' value '%s'."
-                                           % item[key])
+                        raise SidFileError("invalid 'sid' value '%s'." % item[key])
 
                 elif key == 'status':
-                    if not item[key] in self.item_statuses:
-                        raise SidFileError("invalid 'status' value '%s'."
-                                           % item[key])
+                    status_absent = False
+                    if not isinstance(item[key], str):
+                        raise SidFileError("invalid 'sid' value '%s'." % item[key])
 
                 else:
                     raise SidFileError("invalid key '%s'." % key)
 
-            if namespace_absent:
-                raise SidFileError("mandatory field 'namespace' not present")
+        if namespace_absent:
+            raise SidFileError("mandatory field 'namespace' not present")
 
-            if identifier_absent:
-                raise SidFileError("mandatory field 'identifier' not present")
+        if identifier_absent:
+            raise SidFileError("mandatory field 'identifier' not present")
 
-            if sid_absent:
-                raise SidFileError("mandatory field 'sid' not present")
+        if sid_absent:
+            raise SidFileError("mandatory field 'sid' not present")
 
     ########################################################
     # Verify if each range defined in the .sid file is distinct
@@ -634,22 +634,19 @@ class SidFile:
             last_sid = sid
 
     def out_of_ranges(self, sid):
-        for arange in self.content.get('assignment-range') or []:
+       for arange in self.content.get('assignment-range') or []:
             if arange['entry-point'] <= sid and \
                     sid < arange['entry-point'] + arange['size']:
                 return False
         return True
 
-    # Groups of keywords with same handling in some method below,
-    # named after a representative
+    # Groups of keywords with same handling in some method below, named after a representative
     leaf_keywords = ('leaf', 'leaf-list', 'anyxml', 'anydata')
     container_keywords = ('container', 'list')
-    module_container_keywords = ('container', 'list',
-                                 ('ietf-yang-structure-ext', 'structure'))
     choice_keywords = ('choice', 'case')
     inrpc_keywords = ('input', 'output')
-    module_keywords = ('module', 'container', 'list', 'notification',
-                       'rpc', 'action')
+    grouping_keywords = ('grouping', 'choice', 'case')
+    module_keywords = ('module', 'container', 'list', 'notification', 'rpc', 'action')
 
     @staticmethod
     def has_yang_data_extension(statement):
@@ -663,6 +660,9 @@ class SidFile:
     def collect_module_items(self, module):
         if 'item' not in self.content:
             self.content['item'] = []
+
+        if 'key-mapping' not in self.content:
+            self.content['key-mapping'] = {}
 
         for item in self.content['item']:
             # Set to 'd' deleted, updated to 'o' if present in .yang file
@@ -681,25 +681,23 @@ class SidFile:
             if statement.keyword in self.leaf_keywords:
                 self.merge_item('data', self.get_path(statement))
 
-            elif (statement.keyword in self.module_container_keywords or 
-                  statement.keyword in self.choice_keywords):
+            elif statement.keyword in self.container_keywords:
                 self.merge_item('data', self.get_path(statement))
                 self.collect_inner_data_nodes(statement.i_children)
 
+            elif statement.keyword in self.choice_keywords:
+                self.collect_inner_data_nodes(statement.i_children)
+
             elif statement.keyword == 'rpc':
-                self.merge_item('data',
-                                "/%s:%s" % (self.module_name, statement.arg))
+                self.merge_item('data', "/%s:%s" % (self.module_name, statement.arg))
                 for substmt in statement.i_children:
                     if substmt.keyword in self.inrpc_keywords:
-                        # RFC 9595, Appendix B require to create SID for all
-                        # rpc input and output schema nodes
-                        # (this is needed during schema augmentation)
-                        self.merge_item('data', self.get_path(substmt))
-                        self.collect_inner_data_nodes(substmt.i_children)
+                        if len(substmt.i_children) > 0:
+                            self.merge_item('data', "/%s:%s/%s" % (self.module_name, statement.arg, substmt.keyword))
+                            self.collect_inner_data_nodes(substmt.i_children)
 
             elif statement.keyword == 'notification':
-                self.merge_item('data',
-                                "/%s:%s" % (self.module_name, statement.arg))
+                self.merge_item('data', "/%s:%s" % (self.module_name, statement.arg))
                 self.collect_inner_data_nodes(statement.i_children)
 
         for identity in module.i_identities:
@@ -710,18 +708,36 @@ class SidFile:
                 self.collect_in_substmts(substmt.substmts)
             elif self.has_yang_data_extension(substmt):
                 self.collect_in_substmts(substmt.substmts)
-            elif substmt.keyword == \
-                    ('ietf-yang-structure-ext', 'augment-structure'):
-                self.collect_in_substmts(substmt.substmts)
 
     def collect_inner_data_nodes(self, statements, prefix=""):
         for statement in statements:
             if statement.keyword in self.leaf_keywords:
-                self.merge_item('data', self.get_path(statement, prefix))
+                for s in statement.substmts: # find type declaration
+                    if s.keyword == "type":
+                        if s.i_type_spec.name == "identityref":
+                            typename = "identityref"
 
-            elif (statement.keyword in self.container_keywords or
-                  statement.keyword in self.choice_keywords):
+                        elif s.i_type_spec.name == "enumeration":
+                            typename = {}
+                            for k, v in s.i_type_spec.enums:
+                                typename[str(v)] = k
+                        else:
+                            typename = s.arg
+
+                        if typename=="union": # union put all types in an array
+                            typename = []
+                            for t in s.i_type_spec.types:
+                                typename.append(t.arg)
+                self.merge_item('data', self.get_path(statement, prefix), typename)
+
+            elif statement.keyword in self.container_keywords:
                 self.merge_item('data', self.get_path(statement, prefix))
+                if self.sid_extension:
+                    if statement.keyword == "list": # if list add list-id : [key-id, ...]
+                        keys = []
+                        for k in statement.i_key:
+                            keys.append(self.get_path(k, prefix))
+                        self.content["key-mapping"][self.get_path(statement, prefix)] = keys
                 self.collect_inner_data_nodes(statement.i_children, prefix)
 
             elif statement.keyword == 'action':
@@ -729,62 +745,70 @@ class SidFile:
                 for substmt in statement.i_children:
                     self.merge_item('data', "%s/%s" % (self.get_path(statement, prefix), substmt.keyword))
                     if substmt.keyword in self.inrpc_keywords:
-                        # RFC 9595, Appendix B require to create SID for all
-                        # action input and output schema nodes
-                        # (this is needed during schema augmentation)
-                        self.merge_item('data', self.get_path(substmt))
-                        self.collect_inner_data_nodes(substmt.i_children,
-                                                      prefix)
-
+                        self.collect_inner_data_nodes(substmt.i_children, prefix)
+                        
             elif statement.keyword == 'notification':
                 self.merge_item('data', self.get_path(statement, prefix))
+                self.collect_inner_data_nodes(statement.i_children, prefix)
+
+            elif statement.keyword in self.choice_keywords:
                 self.collect_inner_data_nodes(statement.i_children, prefix)
 
     def collect_in_substmts(self, substmts):
         for statement in substmts:
             if statement.keyword in self.leaf_keywords:
+                for stmt in statement.substmts: 
+                    if stmt.keyword == "type":
+                        itype= stmt.i_typedef
+                        if itype != None:
+                            type_descr = {}
+                            for type_stmt in itype.substmts:
+                                #print  (type_stmt.arg)
+                                if type_stmt.arg == "enumeration":
+                                    for enum in type_stmt.substmts:
+                                        enum_name = enum.arg
+                                        for val in enum.substmts:
+                                            if val.keyword == "value":
+                                                enum_val = val.arg
+                                                break
+                                        type_descr[enum_val] = enum_name
+                        else:
+                            type_descr = stmt.arg
+
+                    
+                    
+                self.merge_item('data', self.get_path(statement), type_descr)
                 self.merge_item('data', self.get_path(statement))
 
-            elif (statement.keyword in self.container_keywords or
-                  statement.keyword in self.choice_keywords):
+            elif statement.keyword in self.container_keywords:
                 self.merge_item('data', self.get_path(statement))
+                self.collect_in_substmts(statement.substmts)
+
+            elif statement.keyword in self.choice_keywords:
                 self.collect_in_substmts(statement.substmts)
 
             elif statement.keyword == 'uses':
                 prefix = self.get_path(statement.parent)
-                self.collect_inner_data_nodes(statement.i_grouping.i_children,
-                                              prefix)
+                self.collect_inner_data_nodes(statement.i_grouping.i_children, prefix)
 
     def get_path(self, statement, prefix=""):
         path = ""
 
-        #breakpoint()
-
         while statement.i_module is not None:
-            if (statement.keyword != 'grouping'
+            if (statement.keyword not in self.grouping_keywords
                     and not self.has_yang_data_extension(statement)):
                 # Locate the data node parent
                 parent = statement.parent
                 while parent.i_module is not None:
-                    if (parent.keyword in self.module_keywords or
-                            parent.keyword ==
-                            ('ietf-yang-structure-ext', 'structure') or
-                            parent.keyword ==
-                            ('ietf-yang-structure-ext', 'augment-structure')):
+                    if parent.keyword in self.module_keywords:
                         break
                     parent = parent.parent
 
                 if (prefix != "" or
-                        (parent.i_module is not None and
-                         parent.i_module == statement.i_module) or
-                        (statement.keyword == 'case' and 
-                         statement.i_module == statement.parent.i_module) or
-                        (statement.parent.keyword == 'case' and 
-                         statement.i_module == statement.parent.i_module)):
+                    (parent.i_module is not None and parent.i_module == statement.i_module)):
                     path = "/" + statement.arg + path
                 else:
-                    path = "/" + statement.i_module.arg + ":" + statement.arg \
-                            + path
+                    path = "/" + statement.i_module.arg + ":" + statement.arg + path
 
             statement = statement.parent
 
@@ -796,75 +820,19 @@ class SidFile:
                     identifier == item['identifier']):
                 item['lifecycle'] = 'o' # Item already assigned
                 return
-        self.content['item'].append(collections.OrderedDict(
-            [('namespace', namespace), ('identifier', identifier),
-             ('status', 'unstable'),
-             ('sid', -1), ('lifecycle', 'n')]))
+
+        if self.sid_extension and typename != None:
+            self.content['item'].append(collections.OrderedDict(
+                [('namespace', namespace), ('identifier', identifier),
+                ('status', 'unstable'),
+                ('sid', -1), ('lifecycle', 'n'),
+                ('type', typename)]))
+        else:
+            self.content['item'].append(collections.OrderedDict(
+                [('namespace', namespace), ('identifier', identifier),
+                ('status', 'unstable'),
+                ('sid', -1), ('lifecycle', 'n')]))
         self.is_consistent = False
-
-    ########################################################
-    # Create list of dependent module with optional revision
-    def build_dependencies(self, module):
-        imports = module.search('import')
-
-        if 'dependency-revision' not in self.content and len(imports) > 0:
-            self.content['dependency-revision'] = []
-
-        for import_stmt in imports:
-            dep = collections.OrderedDict()
-            module_name = import_stmt.arg
-            dep['module-name'] = module_name
-            rev_stmt = import_stmt.search_one('revision-date')
-            revision = rev_stmt.arg if rev_stmt is not None else None
-            if revision is None:
-                entries = list(filter(
-                    lambda name_rev: name_rev[0] == module_name,
-                    module.i_ctx.modules))
-
-                if len(entries) == 1 and entries[0][1] == 'unknown':
-                    pass
-                else:
-                    latest = ''
-                    for ent in entries:
-                        if ent[1] == 'unknown':
-                            continue
-                        if ent[1] > latest:
-                            latest = ent[1]
-
-                    if latest == '':
-                        # We could not have 2 or more modules with same named
-                        # and no revision
-                        raise SidFileError('unreachable')
-                    ##assert re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', latest)
-
-                    revision = latest
-                    print(f"WARNING: Module '{module_name}' imported " +
-                        f"without revision, using latest revision {latest}")
-
-            if revision is None and module_name in module.i_ctx.revs:
-                latest = ''
-                for r in module.i_ctx.revs[module_name]:
-                    if r[0] == 'unknown':
-                        continue
-                    if r[0] > latest:
-                        latest = r[0]
-
-                if latest == '':
-                    raise Exception(f'The .sid file requires the imported ' +
-                    'modules to have revision statement. No module ' +
-                    '"{module_name}" with revision statement found.')
-
-                revision = latest
-                print(f"WARNING: Module '{module_name}' imported without " +
-                    f"revision, using latest revision {latest}")
-
-            if revision is None:
-                raise SidFileError(f"Missing revision for module " +
-                    f"'{module_name}' for mandatory sid-file field " +
-                    "'ietf-sid-file:sid-file/dependency-revision/module-revision'.") # noqa: E501
-
-            dep['module-revision'] = revision
-            self.content['dependency-revision'].append(dep)
 
     ########################################################
     # Sort the items list by 'namespace' and 'identifier'
@@ -947,21 +915,18 @@ class SidFile:
                 status = " (Remove)"
                 definition_removed = True
 
-            print("%-9s  %s %s%s"
-                % (item['sid'], item['namespace'], item['identifier'], status))
+            print("%-9s  %s %s%s" % (item['sid'], item['namespace'], item['identifier'], status))
 
         if definition_removed:
             print(
-                "\nWARNING, obsolete definitions should be defined " +
-                "as 'deprecated' or 'obsolete'.")
+                "\nWARNING, obsolete definitions should be defined as 'deprecated' or 'obsolete'.")
 
     ########################################################
     def list_deleted_items(self):
         definition_removed = False
         for item in self.content['item']:
             if item['lifecycle'] == 'd':
-                print("WARNING, item '%s' was deleted form the .yang files."
-                      % item['identifier'])
+                print("WARNING, item '%s' was deleted form the .yang files." % item['identifier'])
                 definition_removed = True
 
         if definition_removed:
@@ -971,6 +936,12 @@ class SidFile:
                   "with a 'deprecated' or 'obsolete' status.")
 
     ########################################################
+    def find_sid(self, id):
+        for e in self.content['item']:
+            if e['identifier'] == id:
+                return e['sid']
+        return None
+
     def generate_file(self):
         for item in self.content['item']:
             del item['lifecycle']
@@ -1016,12 +987,22 @@ class SidFile:
             for item in sid_cont['item']:
                 if item['status'] == 'unstable':
                     print("  finalized %s" % (item['identifier']))
-                    # status 'stable' is default enum
-                    del item['status']
+                    item['status'] = self.module_revision
+
+        if self.sid_extension:
+            key_mapping_sid = {}
+            for k, v in self.content['key-mapping'].items():
+                k_sid = self.find_sid(k)
+                v_sids = []
+                for e in v:
+                    v_sids.append(self.find_sid(e))
+                key_mapping_sid[k_sid] = v_sids
+
+            self.content['key-mapping'] = key_mapping_sid
 
         with open(self.output_file_name, 'w') as outfile:
             outfile.truncate(0)
-            json.dump({self.IETF_SID_FILE: sid_cont}, outfile, indent=2)
+            json.dump(myorderedstuff, outfile, indent=2)
 
     ########################################################
     def number_of_sids_allocated(self):
@@ -1049,8 +1030,7 @@ class SidFile:
         info = {
             'module_name' : self.module_name,
             'module_revision' : self.module_revision,
-            'yang_file' : '%s@%s.yang'
-                    % (self.module_name, self.module_revision),
+            'yang_file' : '%s@%s.yang' % (self.module_name, self.module_revision),
             'ranges' : ranges,
             'submodules' : submodules,
         }
@@ -1059,21 +1039,18 @@ class SidFile:
             ranges.append({
                 'entry_point' : arange['entry-point'],
                 'size' : arange['size'],
-                'used' : self.number_of_sids_used_in_range(
-                    arange['entry-point'], arange['size'])
+                'used' : self.number_of_sids_used_in_range(arange['entry-point'], arange['size'])
             })
 
         for name in module.i_ctx.modules:
             submodule = module.i_ctx.modules[name]
             if submodule.keyword == 'submodule':
-                submodules.append('%s@%s.yang'
-                                % (submodule.arg, submodule.i_latest_revision))
+                submodules.append('%s@%s.yang' % (submodule.arg, submodule.i_latest_revision))
 
         print(json.dumps(info, indent=2))
 
     ########################################################
-    # Perform the conversion to the .sid file fromat
-    # introduced by [I-D.ietf-core-sid] version 3.
+    # Perform the conversion to the .sid file fromat introduced by [I-D.ietf-core-sid] version 3.
     # This method can be removed after the proper transition period.
 
     node_keywords = ('node', 'notification', 'rpc', 'action')
@@ -1086,6 +1063,8 @@ class SidFile:
         for item in items:
             type_ = item.pop('type', None)
             label = item.pop('label', None)
+            typename = item.pop('type', None)
+
             if not type_:
                 pass
             elif type_ in ('Module', 'Submodule'):
@@ -1103,23 +1082,3 @@ class SidFile:
             elif type_ in self.node_keywords:
                 item['namespace'] = 'data'
                 item['identifier'] = '/' + self.module_name + ':' + label[1:]
-
-    @staticmethod
-    def str_to_uint64(sid_cont: dict) -> dict:
-        ranges = sid_cont.get('assignment-range', [])
-        for range in ranges:
-            if 'entry-point' not in range:
-                raise SidFileError("mandatory key 'entry-point' not present")
-            if 'size' not in range:
-                raise SidFileError("mandatory field 'size' not present")
-
-            range['entry-point'] = int(range['entry-point'])
-            range['size'] = int(range['size'])
-
-        items = sid_cont.get('item', [])
-        for item in items:
-            if 'sid' not in item:
-                raise SidFileError("mandatory field 'sid' not present")
-            item['sid'] = int(item['sid'])
-
-        return sid_cont
