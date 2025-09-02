@@ -317,7 +317,7 @@ class SidFile:
         self.module_revision = ''
         self.output_file_name = ''
         self.update = False
-	self.sid_extension = False
+	    self.sid_extension = False
 
     def process_sid_file(self, module):
         self.module_name = module.i_modulename
@@ -1001,9 +1001,9 @@ class SidFile:
 
                 print (key_mapping_sid)
 
-            print ("<", self.content)
+            #print ("<", self.content)
             self.content['key-mapping'] = key_mapping_sid
-            print (">", self.content)
+            #print (">", self.content)
             myorderedstuff['key-mapping'] = key_mapping_sid
 
 
