@@ -690,8 +690,11 @@ class SidFile:
         return prefix + path
 
     def merge_item(self, namespace, identifier):
+        # only compare the last component.
+        lastid = re.split(r'[/:]', identifier)[-1]
         for item in self.content['items']:
-            if (namespace == item['namespace'] and identifier == item['identifier']):
+            itemlast = re.split(r'[/:]',item['identifier'])[-1]
+            if (namespace == item['namespace'] and lastid == itemlast):
                 item['lifecycle'] = 'o' # Item already assigned
                 return
         self.content['items'].append(collections.OrderedDict(
