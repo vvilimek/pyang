@@ -1,6 +1,11 @@
 PYANG?= pyang
 
-test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 test12 test14 test15 test16 test17 test18 test19 test20 test21
+.PHONY: test test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
+	test12 test14 test15 test16 test17 test18 test19 test20 test21 test22 test23 \
+	test24 test25 test26 test27 test28 test29 test30 test31 test32 test33 test34
+test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
+	test12 test14 test15 test16 test17 test18 test19 test20 test21 test22 \
+	test23 test24 test25 test26 test27 test28 test29 test30 test31 test32 test33 test34
 
 test1:
 	# Test help
@@ -15,7 +20,7 @@ test2:
 test3:
 	# Test update sid file (test3)
 	cp test-2-expected-toaster@2009-11-20.sid toaster@2009-11-20.sid
-	$(PYANG) --sid-list --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang 2>&1 | tee OUTPUT/test-3-expected-output.txt | diff -b test-3-expected-output.txt -
+	$(PYANG) --sid-list --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang 2>&1 | diff -b test-3-expected-output.txt -
 	diff -b test-3-expected-toaster@2009-12-28.sid toaster@2009-12-28.sid
 	rm toaster@2009-11-20.sid toaster@2009-12-28.sid
 
@@ -101,8 +106,93 @@ test20:
 test21:
 	# Test finalize of sid file
 	cp test-3-expected-toaster@2009-12-28.sid toaster@2009-12-28.sid
-	mkdir -p OUTPUT
-	$(PYANG) --sid-update-file toaster@2009-12-28.sid --sid-finalize toaster@2009-12-28.yang 2>&1 | tee OUTPUT/test-21-expected-output.txt | diff -b test-21-expected-output.txt -
+	$(PYANG) --sid-update-file toaster@2009-12-28.sid --sid-finalize toaster@2009-12-28.yang 2>&1 | diff -b test-21-expected-output.txt -
 	diff -b toaster@2009-12-28.sid test-21-expected-toaster@2009-12-28.sid
 	rm toaster@2009-12-28.sid
+
+EXAMPLE_MOD=../test_structure/example-module@2020-06-17.yang
+EXAMPLE_MOD_AUG=../test_structure/example-module-aug.yang
+
+test22: ${EXAMPLE_MOD} test-22-expected-output.txt test-22-expected-example-module@2020-06-17.sid
+	# Test ietf-yang-structure-ext structure sid assignment
+	$(PYANG) --sid-list --sid-generate-file 60000:20 ${EXAMPLE_MOD} 2>&1 | diff -b test-22-expected-output.txt -
+	diff -b example-module@2020-06-17.sid test-22-expected-example-module@2020-06-17.sid
+	rm example-module@2020-06-17.sid
+
+test23: ${EXAMPLE_MOD_AUG} test-23-expected-output.txt test-23-expected-example-module-aug.sid
+	# Test ietf-yang-structure-ext augment-structure sid assignment
+	$(PYANG) --sid-generate-file 61000:10 ${EXAMPLE_MOD_AUG} -p ../test_structure 2>&1 | diff -b test-23-expected-output.txt -
+	diff -b example-module-aug.sid test-23-expected-example-module-aug.sid
+	rm example-module-aug.sid
+
+## The RFC is not clear, an errata discussion is ongoing
+## Don't forget to add me back to 'test' rule
+IETF_SYSTEM=../../modules/ietf/ietf-system.yang
+
+test24: ${IETF_SYSTEM} test-24-expected-output.txt test-24-expected-ietf-system@2014-08-06.sid
+	# Test ietf-system example from RFC 9595
+	$(PYANG) --sid-generate-file 1700:100 ${IETF_SYSTEM} --sid-finalize 2>&1 | diff -b test-24-expected-output.txt -
+	diff -b ietf-system@2014-08-06.sid test-24-expected-ietf-system@2014-08-06.sid
+	rm ietf-system@2014-08-06.sid
+
+test25: a.yang test-25-expected-output.txt test-25-a.sid
+	# Test trivial depend
+	$(PYANG) --sid-generate-file 250:10 a.yang 2>&1 | diff -b test-25-expected-output.txt -
+	diff -b a.sid test-25-a.sid
+	rm a.sid
+
+test26: b@2025-07-20.yang c.yang test-26-expected-output.txt test-26-c.sid
+	# Test explicit import depend
+	$(PYANG) --sid-generate-file 260:10 c.yang 2>&1 | diff -b test-26-expected-output.txt -
+	diff -b c.sid test-26-c.sid
+	rm c.sid
+
+test27: d@2025-07-15.yang e.yang test-27-expected-output.txt test-27-e.sid
+	# Test unique module version
+	$(PYANG) --sid-generate-file 270:10 e.yang 2>&1 | diff -b test-27-expected-output.txt -
+	diff -b e.sid test-27-e.sid
+	rm e.sid
+
+test28: f.yang g.yang test-28-expected-output.txt test-28-g.sid
+	# Test module with revision inside
+	$(PYANG) --sid-generate-file 280:10 g.yang 2>&1 | diff -b test-28-expected-output.txt -
+	diff -b g.sid test-28-g.sid
+	rm g.sid
+
+test29: h@2025-07-15.yang h@2025-07-20.yang i@2025-07-25.yang test-29-i.sid
+	# Test revision use latest
+	$(PYANG) --sid-generate-file 290:10 i@2025-07-25.yang 2>&1 | diff -b test-29-expected-output.txt -
+	diff -b i@2025-07-25.sid test-29-i.sid
+	rm i@2025-07-25.sid
+
+test30: j.yang j@2025-07-15.yang k.yang test-30-expected-output.txt test-30-k.sid
+	# Test with and without revision
+	$(PYANG) --sid-generate-file 300:10 k.yang 2>&1 | diff -b test-30-expected-output.txt -
+	diff -b k.sid test-30-k.sid
+	rm k.sid
+
+test31: l@2025-07-20.yang m.yang test-31-expected-output.txt
+	# Test nonexistent revision
+	$(PYANG) --sid-generate-file 310:10 m.yang 2>&1 | diff -b test-31-expected-output.txt -
+
+test32: rpc-notification-action.yang test-32-expected-rpc-notification-action.sid
+	$(PYANG) --sid-generate-file 60000:100 rpc-notification-action.yang --sid-finalize >/dev/null 2>/dev/null
+	diff -b rpc-notification-action.sid test-32-expected-rpc-notification-action.sid
+	rm rpc-notification-action.sid
+
+test33: choice-case.yang test-33-expected-choice-case.sid
+	# Test that choice and case schema nodes are properly assigned the SID numbers
+	$(PYANG) --sid-generate-file 60000:100 choice-case.yang --sid-finalize >/dev/null 2>/dev/null
+	diff -b choice-case.sid test-33-expected-choice-case.sid
+	rm choice-case.sid
+
+test34: aug-a@2025-08-25.yang aug-b@2025-08-25.yang aug-c@2025-08-25.yang test-34-expected-aug-a.sid test-34-expected-aug-b.sid test-34-expected-aug-c.sid
+	# Test SID assignment identifiers of choice and case node with augmentation
+	$(PYANG) --sid-generate-file 1000:100 aug-a@2025-08-25.yang --sid-finalize >/dev/null 2>/dev/null
+	diff -b aug-a@2025-08-25.sid test-34-expected-aug-a.sid
+	$(PYANG) --sid-generate-file 1100:100 aug-b@2025-08-25.yang --sid-finalize >/dev/null 2>/dev/null
+	diff -b aug-b@2025-08-25.sid test-34-expected-aug-b.sid
+	$(PYANG) --sid-generate-file 1200:100 aug-c@2025-08-25.yang --sid-finalize >/dev/null 2>/dev/null
+	diff -b aug-c@2025-08-25.sid test-34-expected-aug-c.sid
+	rm aug-a@2025-08-25.sid aug-b@2025-08-25.sid aug-c@2025-08-25.sid
 
