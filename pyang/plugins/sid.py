@@ -813,7 +813,8 @@ class SidFile:
             if statement.keyword in self.leaf_keywords:
                 for stmt in statement.substmts: # debug
                     if stmt.keyword == "type":
-                      print (self.content)
+                      #print (self.content)
+                      pass
                 self.merge_item('data', self.get_path(statement))
 
             elif (statement.keyword in self.container_keywords or
@@ -1121,7 +1122,7 @@ class SidFile:
                     v_sids.append(self.find_sid(e))
                 key_mapping_sid[k_sid] = v_sids
 
-                print (key_mapping_sid)
+                #print (key_mapping_sid)
 
             #print ("<", self.content)
             self.content['key-mapping'] = key_mapping_sid
