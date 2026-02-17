@@ -50,7 +50,7 @@ OPTIONS
 
   $ pyang --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang
 
--- sid-check-file
+--sid-check-file
 
   The --sid-check-file option can be used at any time to verify if a .sid file
   need to be updated.
@@ -61,6 +61,11 @@ OPTIONS
   For example:
 
   $ pyang --sid-check-file toaster@2009-12-28.sid toaster@2009-12-28.yang
+
+--sid-extension
+
+   Add non standard entries in the .sid file to facilitate CORECONF manipulation
+   on constrained devices.
 
 --sid-list
 
