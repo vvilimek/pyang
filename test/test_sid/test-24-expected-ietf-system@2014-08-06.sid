@@ -4,8 +4,8 @@
     "module-revision": "2014-08-06",
     "dependency-revision": [
       {
-        "module-name": "ietf-yang-types",
-        "module-revision": "2013-07-15"
+        "module-name": "iana-crypt-hash",
+        "module-revision": "2014-08-06"
       },
       {
         "module-name": "ietf-inet-types",
@@ -16,8 +16,8 @@
         "module-revision": "2018-02-14"
       },
       {
-        "module-name": "iana-crypt-hash",
-        "module-revision": "2014-08-06"
+        "module-name": "ietf-yang-types",
+        "module-revision": "2013-07-15"
       }
     ],
     "assignment-range": [

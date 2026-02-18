@@ -4,11 +4,11 @@
     "sid-file-status": "unpublished",
     "dependency-revision": [
       {
-        "module-name": "ietf-yang-structure-ext",
+        "module-name": "example-module",
         "module-revision": "2020-06-17"
       },
       {
-        "module-name": "example-module",
+        "module-name": "ietf-yang-structure-ext",
         "module-revision": "2020-06-17"
       }
     ],
