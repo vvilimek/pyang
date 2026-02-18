@@ -5,7 +5,8 @@ PYANG?= pyang
 	test24 test25 test26 test27 test28 test29 test30 test31 test32 test33 test34
 test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test12 test14 test15 test16 test17 test18 test19 test20 test21 test22 \
-	test23 test24 test25 test26 test27 test28 test29 test30 test31 test32 test33 test34
+	test23 test24 test25 test26 test27 test28 test29 test30 test31 test32 \
+	test33 test34 test37 test38
 
 test1:
 	# Test help
@@ -196,3 +197,26 @@ test34: aug-a@2025-08-25.yang aug-b@2025-08-25.yang aug-c@2025-08-25.yang test-3
 	diff -b aug-c@2025-08-25.sid test-34-expected-aug-c.sid
 	rm aug-a@2025-08-25.sid aug-b@2025-08-25.sid aug-c@2025-08-25.sid
 
+test37: update-a@2026-02-10.yang update-a@2026-02-15.yang update-b@2026-02-10.yang update-b@2026-02-15.yang update-b@2026-02-20.yang
+	# Test dependency unification
+	$(PYANG) --sid-generate-file 61000:1000 update-b@2026-02-10.yang >/dev/null
+	diff -b update-b@2026-02-10.sid test-37-expected-update-b@2026-02-10.sid
+	$(PYANG) --sid-update-file update-b@2026-02-10.sid update-b@2026-02-15.yang >/dev/null
+	diff -b update-b@2026-02-15.sid test-37-expected-update-b@2026-02-15.sid
+	$(PYANG) --sid-update-file update-b@2026-02-15.sid update-b@2026-02-20.yang >/dev/null
+	diff -b update-b@2026-02-20.sid test-37-expected-update-b@2026-02-20.sid
+	rm update-b@2026-02-10.sid update-b@2026-02-15.sid update-b@2026-02-20.sid
+
+test38: update-a@2026-02-10.yang update-a@2026-02-15.yang update-b@2026-02-10.yang update-b@2026-02-15.yang update-b@2026-02-20.yang
+	# Test dependency unification
+	rm -f update-b@2026-02-15.sid update-b@2026-02-20.sid
+	$(PYANG) --sid-generate-file 61000:1000 update-b@2026-02-10.yang >/dev/null
+	$(PYANG) --sid-update-file update-b@2026-02-10.sid update-b@2026-02-15.yang >/dev/null
+	sed -i 's/"module-revision": "2026-02-10"/"module-revision": "2026-02-16"/' update-b@2026-02-15.sid
+	$(PYANG) --sid-update-file update-b@2026-02-15.sid update-b@2026-02-20.yang 2>&1 | diff -b test-38-expected-output-1.txt -
+	test ! -f update-b@2026-02-20.sid
+	rm update-b@2026-02-15.sid
+	sed -i 's/"module-revision": "2026-02-10"/"module-revision": "2026-02-11"/' update-b@2026-02-10.sid
+	$(PYANG) --sid-update-file update-b@2026-02-10.sid update-b@2026-02-15.yang 2>&1 | diff -b test-38-expected-output-2.txt -
+	test ! -f update-b@2026-02-15.sid
+	rm update-b@2026-02-10.sid
