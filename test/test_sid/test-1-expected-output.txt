@@ -3,6 +3,7 @@ YANG Schema Item iDentifiers (SID) are globally unique unsigned integers used
 to identify YANG items. SIDs are used instead of names to save space in
 constrained applications such as COREconf. This plugin is used to automatically
 generate and updated .sid files used to persist and distribute SID assignments.
+Note that the yang-filename must contain a YANG module not a YANG submodule.
 
 
 COMMANDS
@@ -50,7 +51,7 @@ OPTIONS
 
   $ pyang --sid-update-file toaster@2009-11-20.sid toaster@2009-12-28.yang
 
--- sid-check-file
+--sid-check-file
 
   The --sid-check-file option can be used at any time to verify if a .sid file
   need to be updated.
@@ -62,6 +63,11 @@ OPTIONS
 
   $ pyang --sid-check-file toaster@2009-12-28.sid toaster@2009-12-28.yang
 
+--sid-extension
+ 
+    Add non standard entries in the .sid file to facilitate CORECONF manipulation
+    on constrained devices. 
+ 
 --sid-list
 
   The --sid-list option can be used before any of the previous options to

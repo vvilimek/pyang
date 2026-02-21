@@ -12,13 +12,13 @@ import optparse
 import sys
 import collections
 import re
-import os
 import errno
 import json
 import copy
+from datetime import datetime, timezone
 from json import JSONDecodeError
 
-
+import pyang
 from pyang import plugin
 from pyang import util
 from pyang import error
@@ -182,6 +182,7 @@ YANG Schema Item iDentifiers (SID) are globally unique unsigned integers used
 to identify YANG items. SIDs are used instead of names to save space in
 constrained applications such as COREconf. This plugin is used to automatically
 generate and updated .sid files used to persist and distribute SID assignments.
+Note that the yang-filename must contain a YANG module not a YANG submodule.
 
 
 COMMANDS
@@ -324,6 +325,10 @@ class SidFile:
         self.update = False
 
     def process_sid_file(self, module):
+        # SID are assigned in context of one namespace, the module defines new namespace.
+        # All submodule live in the parent namespace.
+        if module.keyword == 'submodule':
+            raise SidParsingError(".sid files can be only generated for YANG modules. Generation of .sid files for YANG submodules is prohibited.")
         self.module_name = module.i_modulename
         self.module_revision = util.get_latest_revision(module)
         if self.module_revision != 'unknown':
@@ -343,7 +348,7 @@ class SidFile:
                 raise SidParsingError("File '%s' is not a .sid file"
                                       % self.input_file_name)
 
-            with open(self.input_file_name) as f:
+            with open(self.input_file_name, encoding='utf-8') as f:
                 cont = json.load(f)
 
             sid_cont = cont.get(self.IETF_SID_FILE, None)
@@ -655,7 +660,7 @@ class SidFile:
             last_sid = sid
 
     def out_of_ranges(self, sid):
-        for arange in self.content.get('assignment-range') or []:
+        for arange in self.content.get('assignment-range', []):
             if arange['entry-point'] <= sid and \
                     sid < arange['entry-point'] + arange['size']:
                 return False
@@ -710,9 +715,10 @@ class SidFile:
 
         self.merge_item('module', self.module_name)
 
-        for name in module.i_ctx.modules:
-            if module.i_ctx.modules[name].keyword == 'submodule':
-                self.merge_item('module', module.i_ctx.modules[name].arg)
+        # do not generate SIDs for submodules
+        #for name in module.i_ctx.modules:
+        #    if module.i_ctx.modules[name].keyword == 'submodule':
+        #        self.merge_item('module', module.i_ctx.modules[name].arg)
 
         for feature in module.i_features:
             self.merge_item('feature', feature)
@@ -721,7 +727,7 @@ class SidFile:
             if statement.keyword in self.leaf_keywords:
                 self.merge_item('data', self.get_path(statement))
 
-            elif (statement.keyword in self.module_container_keywords or 
+            elif (statement.keyword in self.module_container_keywords or
                   statement.keyword in self.choice_keywords):
                 self.merge_item('data', self.get_path(statement))
                 self.collect_inner_data_nodes(statement.i_children)
@@ -830,8 +836,6 @@ class SidFile:
     def get_path(self, statement, prefix=""):
         path = ""
 
-        #breakpoint()
-
         while statement.i_module is not None:
             if (statement.keyword != 'grouping'
                     and not self.has_yang_data_extension(statement)):
@@ -851,14 +855,14 @@ class SidFile:
 
                 if (prefix != "" or
                         (parent.i_module is not None and
-                         parent.i_module == statement.i_module) or
-                        (statement.keyword == 'case' and 
-                         statement.i_module == statement.parent.i_module) or
-                        (statement.parent.keyword == 'case' and 
-                         statement.i_module == statement.parent.i_module)):
+                         parent.main_module() == statement.main_module()) or
+                        (statement.keyword == 'case' and
+                         statement.main_module() == statement.parent.main_module()) or
+                        (statement.parent.keyword == 'case' and
+                         statement.main_module() == statement.parent.main_module())):
                     path = "/" + statement.arg + path
                 else:
-                    path = "/" + statement.i_module.arg + ":" + statement.arg \
+                    path = "/" + statement.main_module().arg + ":" + statement.arg \
                             + path
 
             statement = statement.parent
@@ -888,11 +892,17 @@ class SidFile:
 
     ########################################################
     # Create list of dependent module with optional revision
+    # Call only after validate_dep_revisions()
     def build_dependencies(self, module):
         imports = module.search('import')
 
         if 'dependency-revision' not in self.content and len(imports) > 0:
             self.content['dependency-revision'] = []
+
+        dep_unification = {}
+        for dep in self.content.get('dependency-revision', []):
+            # the deps are already checked
+            dep_unification[dep['module-name']] = dep
 
         for import_stmt in imports:
             dep = collections.OrderedDict()
@@ -934,9 +944,9 @@ class SidFile:
                         latest = r[0]
 
                 if latest == '':
-                    raise Exception(f'The .sid file requires the imported ' +
-                    'modules to have revision statement. No module ' +
-                    '"{module_name}" with revision statement found.')
+                    raise SidFileError(f'The .sid file requires the imported ' +
+                    f'modules to have revision statement. No module ' +
+                    f'"{module_name}" with revision statement found.')
 
                 revision = latest
                 print(f"WARNING: Module '{module_name}' imported without " +
@@ -945,10 +955,14 @@ class SidFile:
             if revision is None:
                 raise SidFileError(f"Missing revision for module " +
                     f"'{module_name}' for mandatory sid-file field " +
-                    "'ietf-sid-file:sid-file/dependency-revision/module-revision'.") # noqa: E501
+                    f"'ietf-sid-file:sid-file/dependency-revision/module-revision'.") # noqa: E501
 
             dep['module-revision'] = revision
-            self.content['dependency-revision'].append(dep)
+            old_dep = dep_unification.get(module_name)
+            if old_dep is not None and (old_rev := old_dep['module-revision']) > revision:
+                raise SidFileError(f"Module {module_name} is imported with older revision in YANG ({revision}) than in the .sid file ({old_rev})")
+            dep_unification[module_name] = dep
+        self.content['dependency-revision'] = sorted(dep_unification.values(), key=lambda d: d['module-name'])
 
     ########################################################
     # Sort the items list by 'namespace' and 'identifier'
@@ -1055,6 +1069,9 @@ class SidFile:
                   "with a 'deprecated' or 'obsolete' status.")
 
     ########################################################
+    DESCRIPTION_REGEX = (r"Generated by pyang \d+(.\d+)?(.\d+)?(.)*" +
+        r"at (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)")
+
     def find_sid(self, id):
         for e in self.content['item']:
             if e['identifier'] == id:
@@ -1077,7 +1094,13 @@ class SidFile:
         if not self.finalize_sid:
             sid_cont['sid-file-status'] = 'unpublished'
         descr = self.content.get('description', None)
-        if descr:
+        if not descr or (re.match(self.DESCRIPTION_REGEX, descr) and self.update):
+            # the the format YYYY-mm-ddTHH:MM:SSZ where T,Z are constant
+            # YYYY - year (4 digits %Y), mm - month (2 digits %m), dd - day (2 digits %d)
+            # HH - hours (2 digits %H), MM - minutes (2 digits %M), SS - seconds (2 digits %S)
+            utc_time = datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            sid_cont['description'] = f"Generated by pyang {pyang.__version__} at {utc_time}"
+        else:
             sid_cont['description'] = descr
         dep_revision = self.content.get('dependency-revision', [])
         if dep_revision:
@@ -1085,11 +1108,11 @@ class SidFile:
         ranges = self.content.get('assignment-range', [])
         if ranges:
             sid_cont['assignment-range'] = copy.deepcopy(ranges)
-            for range in sid_cont['assignment-range']:
+            for srange in sid_cont['assignment-range']:
                 # According to RFC 7951, uint64 values are represented
                 # as JSON strings for interoperability
-                range['entry-point'] = str(range['entry-point'])
-                range['size'] = str(range['size'])
+                srange['entry-point'] = str(srange['entry-point'])
+                srange['size'] = str(srange['size'])
 
         items = self.content.get('item', [])
         myorderedstuff = self.content.copy()
@@ -1130,7 +1153,7 @@ class SidFile:
             myorderedstuff['key-mapping'] = key_mapping_sid
 
 
-        with open(self.output_file_name, 'w') as outfile:
+        with open(self.output_file_name, 'w', encoding='utf-8') as outfile:
             outfile.truncate(0)
             json.dump({self.IETF_SID_FILE: sid_cont}, outfile, indent=2)
 
@@ -1219,15 +1242,15 @@ class SidFile:
 
     @staticmethod
     def str_to_uint64(sid_cont: dict) -> dict:
-        ranges = sid_cont.get('assignment-range', [])
-        for range in ranges:
-            if 'entry-point' not in range:
+        all_ranges = sid_cont.get('assignment-range', [])
+        for srange in all_ranges:
+            if 'entry-point' not in srange:
                 raise SidFileError("mandatory key 'entry-point' not present")
-            if 'size' not in range:
+            if 'size' not in srange:
                 raise SidFileError("mandatory field 'size' not present")
 
-            range['entry-point'] = int(range['entry-point'])
-            range['size'] = int(range['size'])
+            srange['entry-point'] = int(srange['entry-point'])
+            srange['size'] = int(srange['size'])
 
         items = sid_cont.get('item', [])
         for item in items:
