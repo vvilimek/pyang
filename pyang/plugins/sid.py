@@ -790,7 +790,6 @@ class SidFile:
                             + path
 
             statement = statement.parent
-        print ("DEBUG: path for statement '%s' is '%s'" % (statement.arg, path))
         return prefix + path
 
     def merge_item(self, namespace, identifier):
