@@ -519,6 +519,11 @@ class SidFile:
                     raise SidFileError("key 'item', invalid value.")
                 self.validate_items(self.content[key])
 
+            elif key == 'key-mapping':
+                if not isinstance(self.content[key], dict):
+                    raise SidFileError("key 'key-mapping', invalid value.")
+                self.validate_key_mapping(self.content[key])
+
             else:
                 raise SidFileError("invalid field '%s'." % key)
 
@@ -615,6 +620,10 @@ class SidFile:
 
             if sid_absent:
                 raise SidFileError("mandatory field 'sid' not present")
+
+    def validate_key_mapping(self, key_mapping):
+        # TODO: This is empty for now, but it should validate these mappings
+        return
 
     ########################################################
     # Verify if each range defined in the .sid file is distinct
