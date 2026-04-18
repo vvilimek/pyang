@@ -293,6 +293,7 @@ test40: $(IETF_SNMP_COMMON)
 	$(PYANG) --sid-generate-file 61000:1000 $(IETF_SNMP_COMMON) 2>&1 | diff -b test-40-expected-output.txt -
 
 test41: main@2026-03-20.yang a-sub@2026-03-20.yang b-sub@2026-03-20.yang x-sub@2026-03-20.yang
-	$(PYANG) --sid-generate-file 1000:100 main@2026-03-20.yang
+	$(PYANG) --sid-generate-file 1000:100 main@2026-03-20.yang >/dev/null 2>/dev/null
 	diff -b main@2026-03-20.sid test-41-expected-main.sid
+	rm main@2026-03-20.sid
 
