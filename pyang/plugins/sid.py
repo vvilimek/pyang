@@ -797,7 +797,7 @@ class SidFile:
                     if statement.keyword not in ('case', 'choice'):
                         path = "/" + statement.arg + path
                 else:
-                    path = "/" + statement.i_module.arg + ":" + statement.arg \
+                    path = "/" + statement.main_module().arg + ":" + statement.arg \
                             + path
 
             statement = statement.parent
