@@ -758,8 +758,13 @@ class SidFile:
                 if self.sid_extension:
                     if statement.keyword == "list": # if list add list-id : [key-id, ...]
                         keys = []
-                        for k in statement.i_key:
-                            keys.append(self.get_path(k, prefix))
+
+                        try: # LT don't known to check if i_key is present
+                            for k in statement.i_key:
+                                keys.append(self.get_path(k, prefix))
+                        except:
+                            pass
+
                         self.content["key-mapping"][self.get_path(statement, prefix)] = keys
                 self.collect_inner_data_nodes(statement.i_children, prefix)
 
