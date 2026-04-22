@@ -735,7 +735,6 @@ class SidFile:
         for statement in statements:
             if statement.keyword in self.leaf_keywords:
                 for s in statement.substmts: # find type declaration
-                    #print (s)
                     if s.keyword == "type":
                         if s.i_type_spec.name == "identityref":
                             typename = "identityref"
@@ -1124,9 +1123,6 @@ class SidFile:
                     v_sids.append(self.find_sid(e))
                 key_mapping_sid[k_sid] = v_sids
 
-                #print (key_mapping_sid)
-
-            #print ("<", self.content)
             self.content['key-mapping'] = key_mapping_sid
 
         with open(self.output_file_name, 'w', encoding='utf-8') as outfile:
