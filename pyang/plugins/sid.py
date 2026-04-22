@@ -804,8 +804,8 @@ class SidFile:
 
                 self.merge_item('data', self.get_path(statement), type_descr)
 
-            elif (statement.keyword in self.container_keywords or
-                  statement.keyword in self.choice_keywords):
+            if (statement.keyword in self.container_keywords or
+                statement.keyword in self.choice_keywords):
                 self.merge_item('data', self.get_path(statement))
                 self.collect_in_substmts(statement.substmts)
 
