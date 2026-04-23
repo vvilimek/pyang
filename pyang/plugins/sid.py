@@ -1123,7 +1123,12 @@ class SidFile:
                     v_sids.append(self.find_sid(e))
                 key_mapping_sid[k_sid] = v_sids
 
+                print (key_mapping_sid)
+
+            print ("<", self.content)
             self.content['key-mapping'] = key_mapping_sid
+            print (">", self.content)
+
 
         with open(self.output_file_name, 'w', encoding='utf-8') as outfile:
             outfile.truncate(0)
