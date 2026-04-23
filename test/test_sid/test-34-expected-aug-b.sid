@@ -29,7 +29,8 @@
       {
         "namespace": "data",
         "identifier": "/aug-a:top-level/aug-b:c/c",
-        "sid": "1102"
+        "sid": "1102",
+        "type": "int32"
       },
       {
         "namespace": "data",
@@ -39,7 +40,8 @@
       {
         "namespace": "data",
         "identifier": "/aug-a:top-level/b/aug-b:b",
-        "sid": "1104"
+        "sid": "1104",
+        "type": "int16"
       }
     ]
   }

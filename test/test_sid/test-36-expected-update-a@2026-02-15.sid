@@ -35,7 +35,8 @@
       {
         "namespace": "data",
         "identifier": "/update-a:table/surface",
-        "sid": "60004"
+        "sid": "60004",
+        "type": "uint32"
       },
       {
         "namespace": "data",
@@ -47,13 +48,15 @@
         "namespace": "data",
         "identifier": "/update-a:chair/height",
         "status": "unstable",
-        "sid": "60006"
+        "sid": "60006",
+        "type": "uint32"
       },
       {
         "namespace": "data",
         "identifier": "/update-a:table/height",
         "status": "unstable",
-        "sid": "60007"
+        "sid": "60007",
+        "type": "uint32"
       }
     ]
   }

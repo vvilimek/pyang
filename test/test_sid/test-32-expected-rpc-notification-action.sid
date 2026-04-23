@@ -27,7 +27,8 @@
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:compare-and-swap-hostname/input/hostname",
-        "sid": "60003"
+        "sid": "60003",
+        "type": "string"
       },
       {
         "namespace": "data",
@@ -37,7 +38,8 @@
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:compare-and-swap-hostname/output/hostname",
-        "sid": "60005"
+        "sid": "60005",
+        "type": "string"
       },
       {
         "namespace": "data",
@@ -57,7 +59,8 @@
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:get-hostname/output/hostname",
-        "sid": "60009"
+        "sid": "60009",
+        "type": "string"
       },
       {
         "namespace": "data",
@@ -67,7 +70,8 @@
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:hostname-changed/hostname",
-        "sid": "60011"
+        "sid": "60011",
+        "type": "string"
       },
       {
         "namespace": "data",
@@ -97,7 +101,8 @@
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:set-hostname/input/hostname",
-        "sid": "60017"
+        "sid": "60017",
+        "type": "string"
       },
       {
         "namespace": "data",
@@ -117,7 +122,8 @@
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/hostname",
-        "sid": "60021"
+        "sid": "60021",
+        "type": "string"
       },
       {
         "namespace": "data",
@@ -127,7 +133,8 @@
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/address",
-        "sid": "60023"
+        "sid": "60023",
+        "type": "string"
       },
       {
         "namespace": "data",
@@ -142,17 +149,20 @@
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/cas-address/input/index",
-        "sid": "60026"
+        "sid": "60026",
+        "type": "uint32"
       },
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/cas-address/input/new-address",
-        "sid": "60027"
+        "sid": "60027",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/cas-address/input/old-address",
-        "sid": "60028"
+        "sid": "60028",
+        "type": "string"
       },
       {
         "namespace": "data",
@@ -162,7 +172,8 @@
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/cas-address/output/result-address",
-        "sid": "60030"
+        "sid": "60030",
+        "type": "string"
       },
       {
         "namespace": "data",
@@ -177,12 +188,14 @@
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/change-name/input/new-name",
-        "sid": "60033"
+        "sid": "60033",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/change-name/input/old-name",
-        "sid": "60034"
+        "sid": "60034",
+        "type": "string"
       },
       {
         "namespace": "data",
@@ -222,27 +235,35 @@
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/get-first-interface/output/address",
-        "sid": "60042"
+        "sid": "60042",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/get-first-interface/output/index",
-        "sid": "60043"
+        "sid": "60043",
+        "type": "uint32"
       },
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/get-first-interface/output/name",
-        "sid": "60044"
+        "sid": "60044",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/get-first-interface/output/status",
-        "sid": "60045"
+        "sid": "60045",
+        "type": {
+          "0": "down",
+          "1": "up"
+        }
       },
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/index",
-        "sid": "60046"
+        "sid": "60046",
+        "type": "uint32"
       },
       {
         "namespace": "data",
@@ -252,7 +273,8 @@
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/name",
-        "sid": "60048"
+        "sid": "60048",
+        "type": "string"
       },
       {
         "namespace": "data",
@@ -262,32 +284,44 @@
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/new-interface/address",
-        "sid": "60050"
+        "sid": "60050",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/new-interface/index",
-        "sid": "60051"
+        "sid": "60051",
+        "type": "uint32"
       },
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/new-interface/name",
-        "sid": "60052"
+        "sid": "60052",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/new-interface/status",
-        "sid": "60053"
+        "sid": "60053",
+        "type": {
+          "0": "down",
+          "1": "up"
+        }
       },
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/new-interface/time-of-change",
-        "sid": "60054"
+        "sid": "60054",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/interface/status",
-        "sid": "60055"
+        "sid": "60055",
+        "type": {
+          "0": "down",
+          "1": "up"
+        }
       },
       {
         "namespace": "data",
@@ -297,7 +331,8 @@
       {
         "namespace": "data",
         "identifier": "/rpc-notification-action:system/simple-notification/description",
-        "sid": "60057"
+        "sid": "60057",
+        "type": "string"
       }
     ]
   }

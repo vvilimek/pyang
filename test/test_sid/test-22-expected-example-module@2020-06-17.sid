@@ -39,31 +39,36 @@
         "namespace": "data",
         "identifier": "/example-module:address-book/address/city",
         "status": "unstable",
-        "sid": "60003"
+        "sid": "60003",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/example-module:address-book/address/first",
         "status": "unstable",
-        "sid": "60004"
+        "sid": "60004",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/example-module:address-book/address/last",
         "status": "unstable",
-        "sid": "60005"
+        "sid": "60005",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/example-module:address-book/address/state",
         "status": "unstable",
-        "sid": "60006"
+        "sid": "60006",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/example-module:address-book/address/street",
         "status": "unstable",
-        "sid": "60007"
+        "sid": "60007",
+        "type": "string"
       }
     ]
   }

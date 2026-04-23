@@ -129,19 +129,22 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/community/context",
         "status": "unstable",
-        "sid": "60019"
+        "sid": "60019",
+        "type": "context-name"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/community/engine-id",
         "status": "unstable",
-        "sid": "60020"
+        "sid": "60020",
+        "type": "engine-id"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/community/index",
         "status": "unstable",
-        "sid": "60021"
+        "sid": "60021",
+        "type": "identifier"
       },
       {
         "namespace": "data",
@@ -159,7 +162,8 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/community/name/binary-name/binary-name",
         "status": "unstable",
-        "sid": "60024"
+        "sid": "60024",
+        "type": "binary"
       },
       {
         "namespace": "data",
@@ -171,19 +175,22 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/community/name/text-name/text-name",
         "status": "unstable",
-        "sid": "60026"
+        "sid": "60026",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/community/security-name",
         "status": "unstable",
-        "sid": "60027"
+        "sid": "60027",
+        "type": "security-name"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/community/target-tag",
         "status": "unstable",
-        "sid": "60028"
+        "sid": "60028",
+        "type": "tag-value"
       },
       {
         "namespace": "data",
@@ -195,19 +202,22 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/engine/enable-authen-traps",
         "status": "unstable",
-        "sid": "60030"
+        "sid": "60030",
+        "type": "boolean"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/engine/enabled",
         "status": "unstable",
-        "sid": "60031"
+        "sid": "60031",
+        "type": "boolean"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/engine/engine-id",
         "status": "unstable",
-        "sid": "60032"
+        "sid": "60032",
+        "type": "engine-id"
       },
       {
         "namespace": "data",
@@ -219,7 +229,8 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/engine/listen/name",
         "status": "unstable",
-        "sid": "60034"
+        "sid": "60034",
+        "type": "identifier"
       },
       {
         "namespace": "data",
@@ -243,13 +254,15 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/engine/listen/transport/dtls/dtls/ip",
         "status": "unstable",
-        "sid": "60038"
+        "sid": "60038",
+        "type": "ip-address"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/engine/listen/transport/dtls/dtls/port",
         "status": "unstable",
-        "sid": "60039"
+        "sid": "60039",
+        "type": "port-number"
       },
       {
         "namespace": "data",
@@ -267,13 +280,15 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/engine/listen/transport/ssh/ssh/ip",
         "status": "unstable",
-        "sid": "60042"
+        "sid": "60042",
+        "type": "ip-address"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/engine/listen/transport/ssh/ssh/port",
         "status": "unstable",
-        "sid": "60043"
+        "sid": "60043",
+        "type": "port-number"
       },
       {
         "namespace": "data",
@@ -291,13 +306,15 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/engine/listen/transport/tls/tls/ip",
         "status": "unstable",
-        "sid": "60046"
+        "sid": "60046",
+        "type": "ip-address"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/engine/listen/transport/tls/tls/port",
         "status": "unstable",
-        "sid": "60047"
+        "sid": "60047",
+        "type": "port-number"
       },
       {
         "namespace": "data",
@@ -315,13 +332,15 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/engine/listen/transport/udp/udp/ip",
         "status": "unstable",
-        "sid": "60050"
+        "sid": "60050",
+        "type": "ip-address"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/engine/listen/transport/udp/udp/port",
         "status": "unstable",
-        "sid": "60051"
+        "sid": "60051",
+        "type": "port-number"
       },
       {
         "namespace": "data",
@@ -333,19 +352,22 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/engine/version/v1",
         "status": "unstable",
-        "sid": "60053"
+        "sid": "60053",
+        "type": "empty"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/engine/version/v2c",
         "status": "unstable",
-        "sid": "60054"
+        "sid": "60054",
+        "type": "empty"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/engine/version/v3",
         "status": "unstable",
-        "sid": "60055"
+        "sid": "60055",
+        "type": "empty"
       },
       {
         "namespace": "data",
@@ -363,37 +385,46 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/notify-filter-profile/exclude",
         "status": "unstable",
-        "sid": "60058"
+        "sid": "60058",
+        "type": "wildcard-object-identifier"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/notify-filter-profile/include",
         "status": "unstable",
-        "sid": "60059"
+        "sid": "60059",
+        "type": "wildcard-object-identifier"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/notify-filter-profile/name",
         "status": "unstable",
-        "sid": "60060"
+        "sid": "60060",
+        "type": "identifier"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/notify/name",
         "status": "unstable",
-        "sid": "60061"
+        "sid": "60061",
+        "type": "identifier"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/notify/tag",
         "status": "unstable",
-        "sid": "60062"
+        "sid": "60062",
+        "type": "tag-value"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/notify/type",
         "status": "unstable",
-        "sid": "60063"
+        "sid": "60063",
+        "type": {
+          "1": "trap",
+          "2": "inform"
+        }
       },
       {
         "namespace": "data",
@@ -405,43 +436,55 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/proxy/context-engine-id",
         "status": "unstable",
-        "sid": "60065"
+        "sid": "60065",
+        "type": "engine-id"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/proxy/context-name",
         "status": "unstable",
-        "sid": "60066"
+        "sid": "60066",
+        "type": "context-name"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/proxy/multiple-target-out",
         "status": "unstable",
-        "sid": "60067"
+        "sid": "60067",
+        "type": "tag-value"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/proxy/name",
         "status": "unstable",
-        "sid": "60068"
+        "sid": "60068",
+        "type": "identifier"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/proxy/single-target-out",
         "status": "unstable",
-        "sid": "60069"
+        "sid": "60069",
+        "type": "identifier"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/proxy/target-params-in",
         "status": "unstable",
-        "sid": "60070"
+        "sid": "60070",
+        "type": "identifier"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/proxy/type",
         "status": "unstable",
-        "sid": "60071"
+        "sid": "60071",
+        "type": {
+          "1": "read",
+          "2": "write",
+          "3": "trap",
+          "4": "inform"
+        }
       },
       {
         "namespace": "data",
@@ -459,13 +502,15 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target-params/name",
         "status": "unstable",
-        "sid": "60074"
+        "sid": "60074",
+        "type": "identifier"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target-params/notify-filter-profile",
         "status": "unstable",
-        "sid": "60075"
+        "sid": "60075",
+        "type": "leafref"
       },
       {
         "namespace": "data",
@@ -489,13 +534,15 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target-params/params/tsm/tsm/security-level",
         "status": "unstable",
-        "sid": "60079"
+        "sid": "60079",
+        "type": "security-level"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target-params/params/tsm/tsm/security-name",
         "status": "unstable",
-        "sid": "60080"
+        "sid": "60080",
+        "type": "security-name"
       },
       {
         "namespace": "data",
@@ -513,13 +560,15 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target-params/params/usm/usm/security-level",
         "status": "unstable",
-        "sid": "60083"
+        "sid": "60083",
+        "type": "security-level"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target-params/params/usm/usm/user-name",
         "status": "unstable",
-        "sid": "60084"
+        "sid": "60084",
+        "type": "identifier"
       },
       {
         "namespace": "data",
@@ -537,7 +586,8 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target-params/params/v1/v1/security-name",
         "status": "unstable",
-        "sid": "60087"
+        "sid": "60087",
+        "type": "security-name"
       },
       {
         "namespace": "data",
@@ -555,43 +605,55 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target-params/params/v2c/v2c/security-name",
         "status": "unstable",
-        "sid": "60090"
+        "sid": "60090",
+        "type": "security-name"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/mms",
         "status": "unstable",
-        "sid": "60091"
+        "sid": "60091",
+        "type": [
+          {
+            "0": "unknown"
+          }, 
+          "int32"
+        ]
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/name",
         "status": "unstable",
-        "sid": "60092"
+        "sid": "60092",
+        "type": "identifier"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/retries",
         "status": "unstable",
-        "sid": "60093"
+        "sid": "60093",
+        "type": "uint8"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/tag",
         "status": "unstable",
-        "sid": "60094"
+        "sid": "60094",
+        "type": "tag-value"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/target-params",
         "status": "unstable",
-        "sid": "60095"
+        "sid": "60095",
+        "type": "identifier"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/timeout",
         "status": "unstable",
-        "sid": "60096"
+        "sid": "60096",
+        "type": "uint32"
       },
       {
         "namespace": "data",
@@ -615,31 +677,36 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/transport/dtls/dtls/client-fingerprint",
         "status": "unstable",
-        "sid": "60100"
+        "sid": "60100",
+        "type": "tls-fingerprint"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/transport/dtls/dtls/ip",
         "status": "unstable",
-        "sid": "60101"
+        "sid": "60101",
+        "type": "host"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/transport/dtls/dtls/port",
         "status": "unstable",
-        "sid": "60102"
+        "sid": "60102",
+        "type": "port-number"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/transport/dtls/dtls/server-fingerprint",
         "status": "unstable",
-        "sid": "60103"
+        "sid": "60103",
+        "type": "tls-fingerprint"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/transport/dtls/dtls/server-identity",
         "status": "unstable",
-        "sid": "60104"
+        "sid": "60104",
+        "type": "admin-string"
       },
       {
         "namespace": "data",
@@ -657,19 +724,22 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/transport/ssh/ssh/ip",
         "status": "unstable",
-        "sid": "60107"
+        "sid": "60107",
+        "type": "host"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/transport/ssh/ssh/port",
         "status": "unstable",
-        "sid": "60108"
+        "sid": "60108",
+        "type": "port-number"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/transport/ssh/ssh/username",
         "status": "unstable",
-        "sid": "60109"
+        "sid": "60109",
+        "type": "string"
       },
       {
         "namespace": "data",
@@ -687,31 +757,36 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/transport/tls/tls/client-fingerprint",
         "status": "unstable",
-        "sid": "60112"
+        "sid": "60112",
+        "type": "tls-fingerprint"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/transport/tls/tls/ip",
         "status": "unstable",
-        "sid": "60113"
+        "sid": "60113",
+        "type": "host"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/transport/tls/tls/port",
         "status": "unstable",
-        "sid": "60114"
+        "sid": "60114",
+        "type": "port-number"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/transport/tls/tls/server-fingerprint",
         "status": "unstable",
-        "sid": "60115"
+        "sid": "60115",
+        "type": "tls-fingerprint"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/transport/tls/tls/server-identity",
         "status": "unstable",
-        "sid": "60116"
+        "sid": "60116",
+        "type": "admin-string"
       },
       {
         "namespace": "data",
@@ -729,19 +804,22 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/transport/udp/udp/ip",
         "status": "unstable",
-        "sid": "60119"
+        "sid": "60119",
+        "type": "ip-address"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/transport/udp/udp/port",
         "status": "unstable",
-        "sid": "60120"
+        "sid": "60120",
+        "type": "port-number"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/target/transport/udp/udp/prefix-length",
         "status": "unstable",
-        "sid": "60121"
+        "sid": "60121",
+        "type": "uint8"
       },
       {
         "namespace": "data",
@@ -759,25 +837,29 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/tlstm/cert-to-name/fingerprint",
         "status": "unstable",
-        "sid": "60124"
+        "sid": "60124",
+        "type": "tls-fingerprint"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/tlstm/cert-to-name/id",
         "status": "unstable",
-        "sid": "60125"
+        "sid": "60125",
+        "type": "uint32"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/tlstm/cert-to-name/map-type",
         "status": "unstable",
-        "sid": "60126"
+        "sid": "60126",
+        "type": "identityref"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/tlstm/cert-to-name/name",
         "status": "unstable",
-        "sid": "60127"
+        "sid": "60127",
+        "type": "string"
       },
       {
         "namespace": "data",
@@ -789,7 +871,8 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/tsm/use-prefix",
         "status": "unstable",
-        "sid": "60129"
+        "sid": "60129",
+        "type": "boolean"
       },
       {
         "namespace": "data",
@@ -837,7 +920,8 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/usm/local/user/auth/protocol/md5/md5/key",
         "status": "unstable",
-        "sid": "60137"
+        "sid": "60137",
+        "type": "hex-string"
       },
       {
         "namespace": "data",
@@ -855,13 +939,15 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/usm/local/user/auth/protocol/sha/sha/key",
         "status": "unstable",
-        "sid": "60140"
+        "sid": "60140",
+        "type": "hex-string"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/usm/local/user/name",
         "status": "unstable",
-        "sid": "60141"
+        "sid": "60141",
+        "type": "identifier"
       },
       {
         "namespace": "data",
@@ -891,7 +977,8 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/usm/local/user/priv/protocol/aes/aes/key",
         "status": "unstable",
-        "sid": "60146"
+        "sid": "60146",
+        "type": "hex-string"
       },
       {
         "namespace": "data",
@@ -909,7 +996,8 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/usm/local/user/priv/protocol/des/des/key",
         "status": "unstable",
-        "sid": "60149"
+        "sid": "60149",
+        "type": "hex-string"
       },
       {
         "namespace": "data",
@@ -921,7 +1009,8 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/usm/remote/engine-id",
         "status": "unstable",
-        "sid": "60151"
+        "sid": "60151",
+        "type": "engine-id"
       },
       {
         "namespace": "data",
@@ -957,7 +1046,8 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/usm/remote/user/auth/protocol/md5/md5/key",
         "status": "unstable",
-        "sid": "60157"
+        "sid": "60157",
+        "type": "hex-string"
       },
       {
         "namespace": "data",
@@ -975,13 +1065,15 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/usm/remote/user/auth/protocol/sha/sha/key",
         "status": "unstable",
-        "sid": "60160"
+        "sid": "60160",
+        "type": "hex-string"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/usm/remote/user/name",
         "status": "unstable",
-        "sid": "60161"
+        "sid": "60161",
+        "type": "identifier"
       },
       {
         "namespace": "data",
@@ -1011,7 +1103,8 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/usm/remote/user/priv/protocol/aes/aes/key",
         "status": "unstable",
-        "sid": "60166"
+        "sid": "60166",
+        "type": "hex-string"
       },
       {
         "namespace": "data",
@@ -1029,7 +1122,8 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/usm/remote/user/priv/protocol/des/des/key",
         "status": "unstable",
-        "sid": "60169"
+        "sid": "60169",
+        "type": "hex-string"
       },
       {
         "namespace": "data",
@@ -1053,43 +1147,53 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/vacm/group/access/context",
         "status": "unstable",
-        "sid": "60173"
+        "sid": "60173",
+        "type": "context-name"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/vacm/group/access/context-match",
         "status": "unstable",
-        "sid": "60174"
+        "sid": "60174",
+        "type": {
+          "1": "exact",
+          "2": "prefix"
+        }
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/vacm/group/access/notify-view",
         "status": "unstable",
-        "sid": "60175"
+        "sid": "60175",
+        "type": "view-name"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/vacm/group/access/read-view",
         "status": "unstable",
-        "sid": "60176"
+        "sid": "60176",
+        "type": "view-name"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/vacm/group/access/security-level",
         "status": "unstable",
-        "sid": "60177"
+        "sid": "60177",
+        "type": "security-level"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/vacm/group/access/security-model",
         "status": "unstable",
-        "sid": "60178"
+        "sid": "60178",
+        "type": "security-model-or-any"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/vacm/group/access/write-view",
         "status": "unstable",
-        "sid": "60179"
+        "sid": "60179",
+        "type": "view-name"
       },
       {
         "namespace": "data",
@@ -1101,19 +1205,22 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/vacm/group/member/security-model",
         "status": "unstable",
-        "sid": "60181"
+        "sid": "60181",
+        "type": "security-model"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/vacm/group/member/security-name",
         "status": "unstable",
-        "sid": "60182"
+        "sid": "60182",
+        "type": "security-name"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/vacm/group/name",
         "status": "unstable",
-        "sid": "60183"
+        "sid": "60183",
+        "type": "group-name"
       },
       {
         "namespace": "data",
@@ -1125,19 +1232,22 @@
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/vacm/view/exclude",
         "status": "unstable",
-        "sid": "60185"
+        "sid": "60185",
+        "type": "wildcard-object-identifier"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/vacm/view/include",
         "status": "unstable",
-        "sid": "60186"
+        "sid": "60186",
+        "type": "wildcard-object-identifier"
       },
       {
         "namespace": "data",
         "identifier": "/ietf-snmp:snmp/vacm/view/name",
         "status": "unstable",
-        "sid": "60187"
+        "sid": "60187",
+        "type": "view-name"
       }
     ]
   }

@@ -15,10 +15,13 @@ import re
 import errno
 import json
 import copy
+import bisect
 from datetime import datetime, timezone
 from json import JSONDecodeError
+from typing import Iterator
 
 import pyang
+from pyang.statements import Statement, ModSubmodStatement, LeafLeaflistStatement
 from pyang import plugin
 from pyang import util
 from pyang import error
@@ -696,7 +699,8 @@ class SidFile:
 
         for statement in module.i_children:
             if statement.keyword in self.leaf_keywords:
-                self.merge_item('data', self.get_path(statement))
+                type_descr = self._sid_extension_type(statement)
+                self.merge_item('data', self.get_path(statement), type_descr)
 
             elif (statement.keyword in self.module_container_keywords or
                   statement.keyword in self.choice_keywords):
@@ -731,26 +735,24 @@ class SidFile:
                     ('ietf-yang-structure-ext', 'augment-structure'):
                 self.collect_in_substmts(substmt.substmts)
 
+        if self.sid_extension and self.update:
+            items = sorted(filter(lambda item: item['namespace'] == 'data', self.content['item']), key=lambda item: item['identifier'])
+            # Both leaf and leaf-list nodes
+            for leaf_ns in self._leaf_iterator(module):
+                path = self.get_path(leaf_ns)
+                id = bisect.bisect_left(items, path, key=lambda item: item['identifier'])
+                if id == len(items):
+                    breakpoint()
+                    continue
+                if 'type' not in items[id]:
+                    type_descr = self._sid_extension_type(leaf_ns)
+                    items[id]['type'] = type_descr
+
     def collect_inner_data_nodes(self, statements, prefix=""):
         for statement in statements:
             if statement.keyword in self.leaf_keywords:
-                for s in statement.substmts: # find type declaration
-                    if s.keyword == "type":
-                        if s.i_type_spec.name == "identityref":
-                            typename = "identityref"
-
-                        elif s.i_type_spec.name == "enumeration":
-                            typename = {}
-                            for k, v in s.i_type_spec.enums:
-                                typename[str(v)] = k
-                        else:
-                            typename = s.arg
-
-                        if typename=="union": # union put all types in an array
-                            typename = []
-                            for t in s.i_type_spec.types:
-                                typename.append(t.arg)
-                self.merge_item('data', self.get_path(statement, prefix), typename)
+                type_descr = self._sid_extension_type(statement)
+                self.merge_item('data', self.get_path(statement, prefix), type_descr)
 
             elif (statement.keyword in self.container_keywords or
                   statement.keyword in self.choice_keywords):
@@ -788,20 +790,7 @@ class SidFile:
     def collect_in_substmts(self, substmts):
         for statement in substmts:
             if statement.keyword in self.leaf_keywords:
-                for stmt in statement.substmts:
-                    if stmt.keyword == "type":
-                        itype= stmt.i_typedef
-                        if itype != None:
-                            type_descr = {}
-                            for type_stmt in itype.substmts:
-                                #print  (type_stmt.arg)
-                                if type_stmt.arg == "enumeration":
-                                    for enum in type_stmt.substmts:
-                                        enum_name = enum.arg
-                                        type_descr[str(enum.i_value)] = enum_name
-                        else:
-                            type_descr = stmt.arg
-
+                type_descr = self._sid_extension_type(statement)
                 self.merge_item('data', self.get_path(statement), type_descr)
 
             if (statement.keyword in self.container_keywords or
@@ -813,6 +802,97 @@ class SidFile:
                 prefix = self.get_path(statement.parent)
                 self.collect_inner_data_nodes(statement.i_grouping.i_children,
                                               prefix)
+
+    def _sid_extension_type(self, statement: Statement) -> None | str | dict[str, str] | list[str]:
+        # collect_in_inner_data_nodes
+        #       for s in statement.substmts: # find type declaration
+        #           if s.keyword == "type":
+        #               if s.i_type_spec.name == "identityref":
+        #                   typename = "identityref"
+        #
+        #               elif s.i_type_spec.name == "enumeration":
+        #                   typename = {}
+        #                   for k, v in s.i_type_spec.enums:
+        #                       typename[str(v)] = k
+        #               else:
+        #                   typename = s.arg
+        #
+        #               if typename=="union": # union put all types in an array
+        #                   typename = []
+        #                   for t in s.i_type_spec.types:
+        #                       typename.append(t.arg)
+
+        # collect_in_substms
+        #        for stmt in statement.substmts:
+        #            if stmt.keyword == "type":
+        #                itype= stmt.i_typedef
+        #                if itype != None:
+        #                    type_descr = {}
+        #                    for type_stmt in itype.substmts:
+        #                        #print  (type_stmt.arg)
+        #                        if type_stmt.arg == "enumeration":
+        #                            for enum in type_stmt.substmts:
+        #                                enum_name = enum.arg
+        #                                type_descr[str(enum.i_value)] = enum_name
+        #                else:
+        #                    type_descr = stmt.arg
+
+        assert statement.keyword in self.leaf_keywords
+        type_stmt = statement.search_one('type')
+        assert type_stmt is not None
+        if type_stmt.i_typedef is not None:
+            return type_stmt.i_typedef.arg
+
+        if type_stmt.i_type_spec is None:
+            return None
+
+        if type_stmt.i_type_spec.name == "identityref":
+            return "identityref"
+        elif type_stmt.i_type_spec.name == "enumeration":
+            enum = {}
+            for k,v in type_stmt.i_type_spec.enums:
+                enum[str(v)] = k
+            return enum
+        elif type_stmt.i_type_spec.name == "bits":
+            # TODO
+            return "bits"
+        elif type == "union":
+            union = []
+            for t in type_stmt.i_type_spec.types:
+                union.append(t.arg)
+
+            return union
+        else:
+            return type_stmt.i_type_spec.name
+
+    def _leaf_iterator(self, module: ModSubmodStatement) -> Iterator[LeafLeaflistStatement]:
+        def checked_len(lst, item):
+            try:
+                return lst.index(item)
+            except ValueError:
+                return -1
+
+        last = None
+        node = module
+        while node is not None:
+            if hasattr(node, 'i_children'):
+                i = checked_len(node.i_children, last)
+                lateral = last in node.i_children
+                if lateral and i + 1 != len(node.i_children):
+                    node = node.i_children[i + 1]
+                    last = node
+                elif not lateral and len(node.i_children) > 0:
+                    node = node.i_children[0]
+                    last = node
+                else:
+                    last = node
+                    node = node.parent
+
+            elif isinstance(node, LeafLeaflistStatement):
+                yield node
+                last = node
+                node = node.parent
+
 
     def get_path(self, statement, prefix=""):
         path = ""
@@ -877,6 +957,7 @@ class SidFile:
     # Call only after validate_dep_revisions()
     def build_dependencies(self, module):
         imports = module.search('import')
+
 
         if 'dependency-revision' not in self.content and len(imports) > 0:
             self.content['dependency-revision'] = []

@@ -28,7 +28,8 @@
       {
         "namespace": "data",
         "identifier": "/aug-a:top-level/a/a",
-        "sid": "1003"
+        "sid": "1003",
+        "type": "int8"
       },
       {
         "namespace": "data",

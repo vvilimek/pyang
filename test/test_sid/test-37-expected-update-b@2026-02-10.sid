@@ -39,13 +39,15 @@
         "namespace": "data",
         "identifier": "/update-b:workplace/number-of-tables",
         "status": "unstable",
-        "sid": "61003"
+        "sid": "61003",
+        "type": "uint32"
       },
       {
         "namespace": "data",
         "identifier": "/update-b:workplace/tables-type",
         "status": "unstable",
-        "sid": "61004"
+        "sid": "61004",
+        "type": "identityref"
       }
     ]
   }

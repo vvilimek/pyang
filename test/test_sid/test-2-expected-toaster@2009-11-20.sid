@@ -93,13 +93,15 @@
         "namespace": "data",
         "identifier": "/toaster:make-toast/input/toasterDoneness",
         "status": "unstable",
-        "sid": "20013"
+        "sid": "20013",
+        "type": "uint32"
       },
       {
         "namespace": "data",
         "identifier": "/toaster:make-toast/input/toasterToastType",
         "status": "unstable",
-        "sid": "20014"
+        "sid": "20014",
+        "type": "identityref"
       },
       {
         "namespace": "data",
@@ -117,7 +119,12 @@
         "namespace": "data",
         "identifier": "/toaster:toastDone/toastStatus",
         "status": "unstable",
-        "sid": "20017"
+        "sid": "20017",
+        "type": {
+          "0": "done",
+          "1": "cancelled",
+          "2": "error"
+        }
       },
       {
         "namespace": "data",
@@ -129,19 +136,25 @@
         "namespace": "data",
         "identifier": "/toaster:toaster/toasterManufacturer",
         "status": "unstable",
-        "sid": "20019"
+        "sid": "20019",
+        "type": "DisplayString"
       },
       {
         "namespace": "data",
         "identifier": "/toaster:toaster/toasterModelNumber",
         "status": "unstable",
-        "sid": "20020"
+        "sid": "20020",
+        "type": "DisplayString"
       },
       {
         "namespace": "data",
         "identifier": "/toaster:toaster/toasterStatus",
         "status": "unstable",
-        "sid": "20021"
+        "sid": "20021",
+        "type": {
+          "1": "up",
+          "2": "down"
+        }
       }
     ]
   }

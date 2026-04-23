@@ -30,13 +30,15 @@
         "namespace": "data",
         "identifier": "/example-module:address-book/address/example-module-aug:county",
         "status": "unstable",
-        "sid": "61001"
+        "sid": "61001",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/example-module:address-book/address/example-module-aug:zipcode",
         "status": "unstable",
-        "sid": "61002"
+        "sid": "61002",
+        "type": "string"
       }
     ]
   }

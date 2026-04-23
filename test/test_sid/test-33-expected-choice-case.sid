@@ -37,12 +37,14 @@
       {
         "namespace": "data",
         "identifier": "/choice-case:box/boxed/ipv4_prefix/ipv4_length",
-        "sid": "60005"
+        "sid": "60005",
+        "type": "uint8"
       },
       {
         "namespace": "data",
         "identifier": "/choice-case:box/boxed/ipv4_prefix/ipv4_network",
-        "sid": "60006"
+        "sid": "60006",
+        "type": "binary"
       },
       {
         "namespace": "data",
@@ -52,12 +54,14 @@
       {
         "namespace": "data",
         "identifier": "/choice-case:box/boxed/ipv6_prefix/ipv6_length",
-        "sid": "60008"
+        "sid": "60008",
+        "type": "uint8"
       },
       {
         "namespace": "data",
         "identifier": "/choice-case:box/boxed/ipv6_prefix/ipv6_network",
-        "sid": "60009"
+        "sid": "60009",
+        "type": "binary"
       },
       {
         "namespace": "data",
@@ -77,12 +81,14 @@
       {
         "namespace": "data",
         "identifier": "/choice-case:box/implicit_case/pair/pair/s",
-        "sid": "60013"
+        "sid": "60013",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/choice-case:box/implicit_case/pair/pair/t",
-        "sid": "60014"
+        "sid": "60014",
+        "type": "string"
       },
       {
         "namespace": "data",
@@ -97,17 +103,20 @@
       {
         "namespace": "data",
         "identifier": "/choice-case:box/implicit_case/triple/triple/x",
-        "sid": "60017"
+        "sid": "60017",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/choice-case:box/implicit_case/triple/triple/y",
-        "sid": "60018"
+        "sid": "60018",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/choice-case:box/implicit_case/triple/triple/z",
-        "sid": "60019"
+        "sid": "60019",
+        "type": "string"
       },
       {
         "namespace": "data",
@@ -122,12 +131,14 @@
       {
         "namespace": "data",
         "identifier": "/choice-case:top-level/ab/a",
-        "sid": "60022"
+        "sid": "60022",
+        "type": "string"
       },
       {
         "namespace": "data",
         "identifier": "/choice-case:top-level/ab/b",
-        "sid": "60023"
+        "sid": "60023",
+        "type": "int32"
       },
       {
         "namespace": "data",
@@ -137,7 +148,8 @@
       {
         "namespace": "data",
         "identifier": "/choice-case:top-level/c/c",
-        "sid": "60025"
+        "sid": "60025",
+        "type": "uint32"
       }
     ]
   }

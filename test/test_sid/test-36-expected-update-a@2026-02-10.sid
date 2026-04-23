@@ -33,7 +33,8 @@
       {
         "namespace": "data",
         "identifier": "/update-a:table/surface",
-        "sid": "60004"
+        "sid": "60004",
+        "type": "uint32"
       }
     ]
   }
