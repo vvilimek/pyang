@@ -716,9 +716,12 @@ class SidFile:
             if statement.keyword in self.leaf_keywords:
                 self.merge_item('data', self.get_path(statement, prefix))
 
-            elif (statement.keyword in self.container_keywords or
-                  statement.keyword in self.choice_keywords):
+            elif statement.keyword in self.container_keywords:
                 self.merge_item('data', self.get_path(statement, prefix))
+                self.collect_inner_data_nodes(statement.i_children, prefix)
+
+            elif statement.keyword in self.choice_keywords:
+                #self.merge_item('data', self.get_path(statement, prefix))
                 self.collect_inner_data_nodes(statement.i_children, prefix)
 
             elif statement.keyword == 'action':
@@ -783,13 +786,13 @@ class SidFile:
                         # handles cases of children of case nodes children of toplevel choice (B)
                         (statement.parent.keyword == 'case' and
                          statement.main_module() == statement.parent.main_module())):
-                    path = "/" + statement.arg + path
+                    if statement.keyword not in ('case', 'choice'):
+                        path = "/" + statement.arg + path
                 else:
                     path = "/" + statement.main_module().arg + ":" + statement.arg \
                             + path
 
             statement = statement.parent
-
         return prefix + path
 
     def merge_item(self, namespace, identifier):
