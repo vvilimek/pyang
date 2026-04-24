@@ -324,6 +324,7 @@ class SidFile:
         self.module_name = ''
         self.module_revision = ''
         self.output_file_name = ''
+        self.sid_extension = False
         self.update = False
         self.sid_extension = False
 
@@ -522,6 +523,7 @@ class SidFile:
                 self.validate_ranges(self.content[key])
 
             elif key == 'item':
+                items_absent = False
                 if not isinstance(self.content[key], list):
                     raise SidFileError("key 'item', invalid value.")
                 self.validate_items(self.content[key])
@@ -672,6 +674,22 @@ class SidFile:
     def has_yang_data_extension(statement):
         try:
             return statement.i_extension.arg == 'yang-data'
+
+        except AttributeError:
+            return False
+
+    @staticmethod
+    def has_structure_extension(statement):
+        try:
+            return statement.i_extension.arg == 'structure'
+
+        except AttributeError:
+            return False
+
+    @staticmethod
+    def has_yang_structure_extension(statement):
+        try:
+            return statement.i_extension.arg == 'structure'
         except AttributeError:
             return False
 
@@ -931,6 +949,7 @@ class SidFile:
 
             statement = statement.parent
 
+        #print ("<=", prefix, '+', path)
         return prefix + path
 
     def merge_item(self, namespace, identifier, typename=None):
@@ -1177,7 +1196,10 @@ class SidFile:
                 srange['size'] = str(srange['size'])
 
         items = self.content.get('item', [])
+        myorderedstuff = self.content.copy()
         if items:
+            # XXX why do we need a separate myorderedstuff?
+            myorderedstuff['item'].sort(key=lambda item: item['sid'])
             sid_cont['item'] = copy.deepcopy(items)
             sid_cont['item'].sort(key=lambda item: item['sid'])
 
