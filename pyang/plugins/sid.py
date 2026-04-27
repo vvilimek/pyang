@@ -139,6 +139,9 @@ class SidPlugin(plugin.PyangPlugin):
         if ctx.opts.list_sid:
             sid_file.list_content = True
 
+        if ctx.opts.sid_ext:
+            sid_file.sid_extension = True
+
         if ctx.opts.finalize_sid:
             print("Will mark unstable allocations finalized")
             sid_file.check_consistency = False
@@ -234,6 +237,11 @@ OPTIONS
   For example:
 
   $ pyang --sid-check-file toaster@2009-12-28.sid toaster@2009-12-28.yang
+
+--sid-extension
+
+   Add non standard entries in the .sid file to facilitate CORECONF manipulation
+   on constrained devices. 
 
 --sid-list
 
@@ -657,6 +665,13 @@ class SidFile:
         except AttributeError:
             return False
 
+    @staticmethod
+    def has_yang_structure_extension(statement):
+        try:
+            return statement.i_extension.arg == 'structure'
+        except AttributeError:
+            return False
+
     ########################################################
     # Collection of items defined in .yang file(s)
     def collect_module_items(self, module):
@@ -722,10 +737,38 @@ class SidFile:
     def collect_inner_data_nodes(self, statements, prefix=""):
         for statement in statements:
             if statement.keyword in self.leaf_keywords:
-                self.merge_item('data', self.get_path(statement, prefix))
+                for s in statement.substmts: # find type declaration
+                    #print (s)
+                    if s.keyword == "type":
+                        if s.i_type_spec.name == "identityref":
+                            typename = "identityref"
+
+                        elif s.i_type_spec.name == "enumeration":
+                            typename = {}
+                            for k, v in s.i_type_spec.enums:
+                                typename[str(v)] = k
+                        else:
+                            typename = s.arg
+
+                        if typename=="union": # union put all types in an array
+                            typename = []
+                            for t in s.i_type_spec.types:
+                                typename.append(t.arg)
+                self.merge_item('data', self.get_path(statement, prefix), typename)
 
             elif statement.keyword in self.container_keywords:
                 self.merge_item('data', self.get_path(statement, prefix))
+                if self.sid_extension:
+                    if statement.keyword == "list": # if list add list-id : [key-id, ...]
+                        keys = []
+                        
+                        try: # LT don't kwon to check if i_key is present
+                            for k in statement.i_key:
+                                keys.append(self.get_path(k, prefix))
+                        except:
+                            pass
+
+                        self.content["key-mapping"][self.get_path(statement, prefix)] = keys
                 self.collect_inner_data_nodes(statement.i_children, prefix)
 
             elif statement.keyword in self.choice_keywords:
