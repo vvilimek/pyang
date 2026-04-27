@@ -3,6 +3,7 @@
     "module-name": "main",
     "module-revision": "2026-03-20",
     "sid-file-status": "unpublished",
+    "description": "pyang description",
     "assignment-range": [
       {
         "entry-point": "1000",
