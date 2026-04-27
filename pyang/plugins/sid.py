@@ -732,6 +732,10 @@ class SidFile:
                 #self.merge_item('data', self.get_path(statement, prefix))
                 self.collect_inner_data_nodes(statement.i_children, prefix)
 
+            elif statement.keyword in self.choice_keywords:
+                #self.merge_item('data', self.get_path(statement, prefix))
+                self.collect_inner_data_nodes(statement.i_children, prefix)
+
             elif statement.keyword == 'action':
                 self.merge_item('data', self.get_path(statement, prefix))
                 for substmt in statement.i_children:

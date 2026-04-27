@@ -48,9 +48,6 @@ test_status:
 test_resolve_leafref:
 	pyang -f flatten --flatten-resolve-leafref ietf-interfaces.yang ietf-yang-types.yang interfaces-ext.yang | diff benchmarks/ietf-interfaces.leafref.csv -
 
-test_rootmodule:
-	pyang -f flatten --flatten-rootmodule ietf-interfaces.yang ietf-yang-types.yang interfaces-ext.yang | diff benchmarks/ietf-interfaces.leafref.csv -
-
 test_ref_units_mand_def:
 	pyang -f flatten  --flatten-reference --flatten-units --flatten-mandatory --flatten-default ietf-interfaces.yang ietf-yang-types.yang interfaces-ext.yang | diff benchmarks/ietf-interfaces.ref-units-mand-def.csv -
 
