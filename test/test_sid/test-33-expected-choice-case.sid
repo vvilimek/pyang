@@ -1,0 +1,99 @@
+{
+  "ietf-sid-file:sid-file": {
+    "module-name": "choice-case",
+    "description": "pyang description",
+    "assignment-range": [
+      {
+        "entry-point": "60000",
+        "size": "100"
+      }
+    ],
+    "item": [
+      {
+        "namespace": "module",
+        "identifier": "choice-case",
+        "sid": "60000"
+      },
+      {
+        "namespace": "feature",
+        "identifier": "triple",
+        "sid": "60001"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/choice-case:a",
+        "sid": "60002"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/choice-case:b",
+        "sid": "60003"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/choice-case:box",
+        "sid": "60004"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/choice-case:box/ipv4_length",
+        "sid": "60005"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/choice-case:box/ipv4_network",
+        "sid": "60006"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/choice-case:box/ipv6_length",
+        "sid": "60007"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/choice-case:box/ipv6_network",
+        "sid": "60008"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/choice-case:box/pair",
+        "sid": "60009"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/choice-case:box/pair/s",
+        "sid": "60010"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/choice-case:box/pair/t",
+        "sid": "60011"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/choice-case:box/triple",
+        "sid": "60012"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/choice-case:box/triple/x",
+        "sid": "60013"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/choice-case:box/triple/y",
+        "sid": "60014"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/choice-case:box/triple/z",
+        "sid": "60015"
+      },
+      {
+        "namespace": "data",
+        "identifier": "/choice-case:c",
+        "sid": "60016"
+      }
+    ]
+  }
+}
