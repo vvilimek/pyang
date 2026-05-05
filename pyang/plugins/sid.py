@@ -19,6 +19,8 @@ from datetime import datetime, timezone
 from json import JSONDecodeError
 
 import pyang
+import pyang.statements as statements
+import pyang.context as context
 from pyang import plugin
 from pyang import util
 from pyang import error
@@ -705,9 +707,12 @@ class SidFile:
         for identity in module.i_identities:
             self.merge_item('identity', identity)
 
+
         for substmt in module.substmts:
             if substmt.keyword == 'augment':
                 self.collect_in_substmts(substmt.substmts)
+            elif substmt.keyword == 'include':
+                self.collect_augment_in_submod(substmt, module.i_ctx)
             elif self.has_yang_data_extension(substmt):
                 self.collect_in_substmts(substmt.substmts)
             elif substmt.keyword == \
@@ -753,6 +758,19 @@ class SidFile:
                 prefix = self.get_path(statement.parent)
                 self.collect_inner_data_nodes(statement.i_grouping.i_children,
                                               prefix)
+
+    def collect_augment_in_submod(self, submod_include: statements.Statement, ctx: context.Context):
+        assert submod_include.keyword == 'include'
+        submod_rev = submod_include.search_one('revision-date')
+        submod_rev = submod_rev.arg if submod_rev else None
+
+        submod = ctx.get_module(submod_include.arg, submod_rev)
+        assert submod is not None
+
+        # augment must be at module/submodule toplevel
+        for substmt in submod.substmts:
+            if substmt.keyword == 'augment':
+                self.collect_in_substmts(substmt.substmts)
 
     def get_path(self, statement, prefix=""):
         path = ""
@@ -809,75 +827,89 @@ class SidFile:
     # Create list of dependent module with optional revision
     # Call only after validate_dep_revisions()
     def build_dependencies(self, module):
-        imports = module.search('import')
-
-        if 'dependency-revision' not in self.content and len(imports) > 0:
+        if 'dependency-revision' not in self.content:
             self.content['dependency-revision'] = []
+            had_dep_rev = False
+        else:
+            had_dep_rev = True
 
         dep_unification = {}
         for dep in self.content.get('dependency-revision', []):
             # the deps are already checked
             dep_unification[dep['module-name']] = dep
 
-        for import_stmt in imports:
-            dep = collections.OrderedDict()
-            module_name = import_stmt.arg
-            dep['module-name'] = module_name
-            rev_stmt = import_stmt.search_one('revision-date')
-            revision = rev_stmt.arg if rev_stmt is not None else None
-            if revision is None:
-                entries = list(filter(
-                    lambda name_rev: name_rev[0] == module_name,
-                    module.i_ctx.modules))
+        def mod_submod_iter(module):
+            yield module
+            for include in module.search("include"):
+                rev = include.search_one("revision-date")
+                submod = module.i_ctx.get_module(include.arg, rev)
+                if submod is not None:
+                    yield submod
 
-                if len(entries) == 1 and entries[0][1] == 'unknown':
-                    pass
-                else:
+        for mod in mod_submod_iter(module):
+            imports = mod.search("import")
+            for import_stmt in imports:
+                dep = collections.OrderedDict()
+                module_name = import_stmt.arg
+                dep['module-name'] = module_name
+                rev_stmt = import_stmt.search_one('revision-date')
+                revision = rev_stmt.arg if rev_stmt is not None else None
+                if revision is None:
+                    entries = list(filter(
+                        lambda name_rev: name_rev[0] == module_name,
+                        module.i_ctx.modules))
+
+                    if len(entries) == 1 and entries[0][1] == 'unknown':
+                        pass
+                    else:
+                        latest = ''
+                        for ent in entries:
+                            if ent[1] == 'unknown':
+                                continue
+                            if ent[1] > latest:
+                                latest = ent[1]
+
+                        if latest == '':
+                            # We could not have 2 or more modules with same named
+                            # and no revision
+                            raise SidFileError('unreachable')
+                        ##assert re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', latest)
+
+                        revision = latest
+                        print(f"WARNING: Module '{module_name}' imported " +
+                            f"without revision, using latest revision {latest}")
+
+                if revision is None and module_name in module.i_ctx.revs:
                     latest = ''
-                    for ent in entries:
-                        if ent[1] == 'unknown':
+                    for r in module.i_ctx.revs[module_name]:
+                        if r[0] == 'unknown':
                             continue
-                        if ent[1] > latest:
-                            latest = ent[1]
+                        if r[0] > latest:
+                            latest = r[0]
 
                     if latest == '':
-                        # We could not have 2 or more modules with same named
-                        # and no revision
-                        raise SidFileError('unreachable')
-                    ##assert re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', latest)
+                        raise SidFileError(f'The .sid file requires the imported ' +
+                        f'modules to have revision statement. No module ' +
+                        f'"{module_name}" with revision statement found.')
 
                     revision = latest
-                    print(f"WARNING: Module '{module_name}' imported " +
-                        f"without revision, using latest revision {latest}")
+                    print(f"WARNING: Module '{module_name}' imported without " +
+                        f"revision, using latest revision {latest}")
 
-            if revision is None and module_name in module.i_ctx.revs:
-                latest = ''
-                for r in module.i_ctx.revs[module_name]:
-                    if r[0] == 'unknown':
-                        continue
-                    if r[0] > latest:
-                        latest = r[0]
+                if revision is None:
+                    raise SidFileError(f"Missing revision for module " +
+                        f"'{module_name}' for mandatory sid-file field " +
+                        f"'ietf-sid-file:sid-file/dependency-revision/module-revision'.") # noqa: E501
 
-                if latest == '':
-                    raise SidFileError(f'The .sid file requires the imported ' +
-                    f'modules to have revision statement. No module ' +
-                    f'"{module_name}" with revision statement found.')
+                dep['module-revision'] = revision
+                old_dep = dep_unification.get(module_name)
+                if old_dep is not None and (old_rev := old_dep['module-revision']) > revision:
+                    raise SidFileError(f"Module {module_name} is imported with older revision in YANG ({revision}) than in the .sid file ({old_rev})")
+                dep_unification[module_name] = dep
 
-                revision = latest
-                print(f"WARNING: Module '{module_name}' imported without " +
-                    f"revision, using latest revision {latest}")
-
-            if revision is None:
-                raise SidFileError(f"Missing revision for module " +
-                    f"'{module_name}' for mandatory sid-file field " +
-                    f"'ietf-sid-file:sid-file/dependency-revision/module-revision'.") # noqa: E501
-
-            dep['module-revision'] = revision
-            old_dep = dep_unification.get(module_name)
-            if old_dep is not None and (old_rev := old_dep['module-revision']) > revision:
-                raise SidFileError(f"Module {module_name} is imported with older revision in YANG ({revision}) than in the .sid file ({old_rev})")
-            dep_unification[module_name] = dep
         self.content['dependency-revision'] = sorted(dep_unification.values(), key=lambda d: d['module-name'])
+        if self.content['dependency-revision'] == [] and not had_dep_rev:
+            del self.content['dependency-revision']
 
     ########################################################
     # Sort the items list by 'namespace' and 'identifier'
