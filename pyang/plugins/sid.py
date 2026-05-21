@@ -803,6 +803,7 @@ class SidFile:
                                 if type_stmt.arg == "enumeration":
                                     for enum in type_stmt.substmts:
                                         enum_name = enum.arg
+                                        enum_val = None
                                         for val in enum.substmts:
                                             if val.keyword == "value":
                                                 enum_val = val.arg
