@@ -66,7 +66,7 @@ OPTIONS
 --sid-extension
 
    Add non standard entries in the .sid file to facilitate CORECONF manipulation
-   on constrained devices. 
+   on constrained devices.
 
 --sid-list
 
