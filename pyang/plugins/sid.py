@@ -474,7 +474,13 @@ class SidFile:
         module_name_absent = True
 
         for key in self.content:
-            if key == 'module-name':
+            if key == 'assignment-range':
+                assignment_ranges_absent = False
+                if not isinstance(self.content[key], list):
+                    raise SidFileError("key 'assignment-range', invalid  value.")
+                self.validate_ranges(self.content[key])
+
+            elif key == 'module-name':
                 module_name_absent = False
 
             elif key == 'module-revision':
@@ -509,12 +515,6 @@ class SidFile:
                     raise SidFileError("key 'dependency-revision', " +
                                        "invalid value")
                 self.validate_dep_revisions(self.content[key])
-
-            elif key == 'assignment-range':
-                if not isinstance(self.content[key], list):
-                    raise SidFileError("key 'assignment-range', " +
-                                       "invalid  value.")
-                self.validate_ranges(self.content[key])
 
             elif key == 'item':
                 if not isinstance(self.content[key], list):
@@ -875,14 +875,14 @@ class SidFile:
         if self.sid_extension and typename != None:
             self.content['item'].append(collections.OrderedDict(
                 [('namespace', namespace), ('identifier', identifier),
-                 ('status', 'unstable'),
-                 ('sid', -1), ('lifecycle', 'n'),
-                 ('type', typename)]))
+                ('status', 'unstable'),
+                ('sid', -1), ('lifecycle', 'n'),
+                ('type', typename)]))
         else:
             self.content['item'].append(collections.OrderedDict(
                 [('namespace', namespace), ('identifier', identifier),
-                 ('status', 'unstable'),
-                 ('sid', -1), ('lifecycle', 'n')]))
+                ('status', 'unstable'),
+                ('sid', -1), ('lifecycle', 'n')]))
         self.is_consistent = False
 
     ########################################################
@@ -1140,7 +1140,6 @@ class SidFile:
                 print (key_mapping_sid)
 
             self.content['key-mapping'] = key_mapping_sid
-
 
         with open(self.output_file_name, 'w', encoding='utf-8') as outfile:
             outfile.truncate(0)
