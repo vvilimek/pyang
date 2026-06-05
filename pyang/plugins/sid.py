@@ -751,25 +751,25 @@ class SidFile:
     def collect_inner_data_nodes(self, statements, prefix=""):
         for statement in statements:
             if statement.keyword in self.leaf_keywords:
-                for s in statement.substmts: # find type declaration
-                    #print (s)
-                    if s.keyword == "type":
-                        if s.i_type_spec.name == "identityref":
-                            typename = "identityref"
+                typename = None
+                if self.sid_extension:
+                    for s in statement.substmts: # find type declaration
+                        if s.keyword == "type":
+                            if s.i_type_spec.name == "identityref":
+                                typename = "identityref"
 
-                        elif s.i_type_spec.name == "enumeration":
-                            typename = {}
-                            for k, v in s.i_type_spec.enums:
-                                typename[str(v)] = k
-                        else:
-                            typename = s.arg
+                            elif s.i_type_spec.name == "enumeration":
+                                typename = {}
+                                for k, v in s.i_type_spec.enums:
+                                    typename[str(v)] = k
+                            else:
+                                typename = s.arg
 
-                        if typename=="union": # union put all types in an array
-                            typename = []
-                            for t in s.i_type_spec.types:
-                                typename.append(t.arg)
+                            if typename=="union": # union put all types in an array
+                                typename = []
+                                for t in s.i_type_spec.types:
+                                    typename.append(t.arg)
                 self.merge_item('data', self.get_path(statement, prefix), typename)
-
             elif (statement.keyword in self.container_keywords or
                   statement.keyword in self.choice_keywords):
                 self.merge_item('data', self.get_path(statement, prefix))

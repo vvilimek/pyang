@@ -16,7 +16,8 @@ test: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 
 test1:
 	# Test help
-	$(PYANG) --sid-help 2>&1 | diff -w test-1-expected-output.txt -
+	mkdir -p OUTPUT
+	$(PYANG) --sid-help 2>&1 | tee OUTPUT/test-1-expected-output.txt | diff -w test-1-expected-output.txt -
 
 test2:
 	# Test generate sid file
