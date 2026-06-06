@@ -57,6 +57,10 @@ class SidPlugin(plugin.PyangPlugin):
                          action="store_true",
                          dest="list_sid",
                          help="Print the list of SID."),
+            optparse.make_option("--sid-extension",
+                         action="store_true",
+                         dest="sid_ext",
+                         help="Add info to the sid file to manipulate coreconf."),
             optparse.make_option("--sid-finalize",
                          action="store_true",
                          dest="finalize_sid",
@@ -140,6 +144,9 @@ class SidPlugin(plugin.PyangPlugin):
 
         if ctx.opts.list_sid:
             sid_file.list_content = True
+
+        if ctx.opts.sid_ext:
+            sid_file.sid_extension = True
 
         if ctx.opts.finalize_sid:
             print("Will mark unstable allocations finalized")
@@ -237,6 +244,11 @@ OPTIONS
 
   $ pyang --sid-check-file toaster@2009-12-28.sid toaster@2009-12-28.yang
 
+--sid-extension
+
+   Add non standard entries in the .sid file to facilitate CORECONF manipulation
+   on constrained devices. 
+
 --sid-list
 
   The --sid-list option can be used before any of the previous options to
@@ -311,6 +323,7 @@ class SidFile:
         self.module_name = ''
         self.module_revision = ''
         self.output_file_name = ''
+        self.sid_extension = False
         self.update = False
 
     def process_sid_file(self, module):
@@ -501,12 +514,14 @@ class SidFile:
                 self.validate_dep_revisions(self.content[key])
 
             elif key == 'assignment-range':
+                assignment_ranges_absent = False
                 if not isinstance(self.content[key], list):
                     raise SidFileError("key 'assignment-range', " +
                                        "invalid  value.")
                 self.validate_ranges(self.content[key])
 
             elif key == 'item':
+                items_absent = False
                 if not isinstance(self.content[key], list):
                     raise SidFileError("key 'item', invalid value.")
                 self.validate_items(self.content[key])
@@ -657,6 +672,22 @@ class SidFile:
     def has_yang_data_extension(statement):
         try:
             return statement.i_extension.arg == 'yang-data'
+
+        except AttributeError:
+            return False
+
+    @staticmethod
+    def has_structure_extension(statement):
+        try:
+            return statement.i_extension.arg == 'structure'
+
+        except AttributeError:
+            return False
+
+    @staticmethod
+    def has_yang_structure_extension(statement):
+        try:
+            return statement.i_extension.arg == 'structure'
         except AttributeError:
             return False
 
@@ -665,6 +696,9 @@ class SidFile:
     def collect_module_items(self, module):
         if 'item' not in self.content:
             self.content['item'] = []
+
+        if self.sid_extension and 'key-mapping' not in self.content: 
+            self.content['key-mapping'] = {}
 
         for item in self.content['item']:
             # Set to 'd' deleted, updated to 'o' if present in .yang file
@@ -683,9 +717,11 @@ class SidFile:
             if statement.keyword in self.leaf_keywords:
                 self.merge_item('data', self.get_path(statement))
 
-            elif (statement.keyword in self.module_container_keywords or
-                  statement.keyword in self.choice_keywords):
+            elif statement.keyword in self.module_container_keywords:
                 self.merge_item('data', self.get_path(statement))
+                self.collect_inner_data_nodes(statement.i_children)
+
+            elif statement.keyword in self.choice_keywords:
                 self.collect_inner_data_nodes(statement.i_children)
 
             elif statement.keyword == 'rpc':
@@ -710,7 +746,13 @@ class SidFile:
 
         for substmt in module.substmts:
             if substmt.keyword == 'augment':
-                self.collect_in_substmts(substmt.substmts)
+                target = substmt.i_target_node
+                if target.keyword != 'choice' and target.parent not in ('module', 'submodule'):
+                    self.collect_in_substmts(substmt.substmts)
+                else:
+                    # Do not emit items for top-level case nodes (case nodes children of toplevel choice)
+                    for case_child in substmt.i_children:
+                        self.collect_in_substmts(case_child.substmts)
             elif substmt.keyword == 'include':
                 self.collect_augment_in_submod(substmt, module.i_ctx)
             elif self.has_yang_data_extension(substmt):
@@ -722,16 +764,49 @@ class SidFile:
     def collect_inner_data_nodes(self, statements, prefix=""):
         for statement in statements:
             if statement.keyword in self.leaf_keywords:
-                self.merge_item('data', self.get_path(statement, prefix))
+                typename = None
+                if self.sid_extension:
+                    for s in statement.substmts: # find type declaration
+                        if s.keyword == "type":
+                            if s.i_type_spec.name == "identityref":
+                                typename = "identityref"
 
-            elif (statement.keyword in self.container_keywords or
-                  statement.keyword in self.choice_keywords):
+                            elif s.i_type_spec.name == "enumeration":
+                                typename = {}
+                                for k, v in s.i_type_spec.enums:
+                                    typename[str(v)] = k
+                            else:
+                                typename = s.arg
+
+                            if typename=="union": # union put all types in an array
+                                typename = []
+                                for t in s.i_type_spec.types:
+                                    typename.append(t.arg)
+                self.merge_item('data', self.get_path(statement, prefix), typename)
+            elif statement.keyword in self.container_keywords:
                 self.merge_item('data', self.get_path(statement, prefix))
+                if self.sid_extension:
+                    if statement.keyword == "list": # if list add list-id : [key-id, ...]
+                        keys = []
+                        
+                        try: # LT don't kwon to check if i_key is present
+                            for k in statement.i_key:
+                                keys.append(self.get_path(k, prefix))
+                        except:
+                            pass
+
+                        self.content["key-mapping"][self.get_path(statement, prefix)] = keys
+                self.collect_inner_data_nodes(statement.i_children, prefix)
+
+            elif statement.keyword in self.choice_keywords:
+                #self.merge_item('data', self.get_path(statement, prefix))
                 self.collect_inner_data_nodes(statement.i_children, prefix)
 
             elif statement.keyword == 'action':
                 self.merge_item('data', self.get_path(statement, prefix))
                 for substmt in statement.i_children:
+                    self.merge_item('data', self.get_path(statement, prefix))
+
                     if substmt.keyword in self.inrpc_keywords:
                         # RFC 9595, Appendix B require to create SID for all
                         # action input and output schema nodes
@@ -747,6 +822,10 @@ class SidFile:
     def collect_in_substmts(self, substmts):
         for statement in substmts:
             if statement.keyword in self.leaf_keywords:
+                for stmt in statement.substmts: # debug
+                    if stmt.keyword == "type":
+                      #print (self.content)
+                      pass
                 self.merge_item('data', self.get_path(statement))
 
             elif (statement.keyword in self.container_keywords or
@@ -778,49 +857,63 @@ class SidFile:
         while statement.i_module is not None:
             if (statement.keyword != 'grouping'
                     and not self.has_yang_data_extension(statement)):
-                # Locate the data node parent
-                parent = statement.parent
-                while parent.i_module is not None:
-                    if (parent.keyword in self.module_keywords or
-                            parent.keyword ==
+                module = statement.parent
+                while module.i_module is not None:
+                    if (module.keyword in self.module_keywords or
+                            module.keyword ==
                             ('ietf-yang-structure-ext', 'structure') or
-                            parent.keyword ==
+                            module.keyword ==
                             ('ietf-yang-structure-ext', 'augment-structure')):
                         break
-                    parent = parent.parent
+                    module = module.parent
+
+                parent_is_toplevel_case = (statement.parent.keyword == 'case' and
+                        statement.parent.parent.parent.keyword in ("module", "submodule"))
+                if parent_is_toplevel_case:
+                    path = "/" + statement.i_module.arg + ":" + statement.arg \
+                            + path
+                    break
 
                 # This if statement guards the simple-form 'identifier' paths elements
                 # (A) we don't want /test-mod:toplevel-choice/test-mod:toplevel-case-a/a
                 # (B) we don't want /test-mod:toplevel-choice/toplevel-case-a/test-mod:a
                 # we want /test-mod:toplevel-choice/toplevel-case-a/a
                 if (prefix != "" or
-                        (parent.i_module is not None and
-                         parent.main_module() == statement.main_module()) or
+                        (module.i_module is not None and
+                         module.main_module() == statement.main_module()) or
                         # handles cases for case nodes children of toplevel choice (A)
                         (statement.keyword == 'case' and
                          statement.main_module() == statement.parent.main_module()) or
                         # handles cases of children of case nodes children of toplevel choice (B)
                         (statement.parent.keyword == 'case' and
                          statement.main_module() == statement.parent.main_module())):
-                    path = "/" + statement.arg + path
+                    if statement.keyword not in ('case', 'choice'):
+                        path = "/" + statement.arg + path
                 else:
                     path = "/" + statement.main_module().arg + ":" + statement.arg \
                             + path
 
             statement = statement.parent
-
         return prefix + path
 
-    def merge_item(self, namespace, identifier):
+    def merge_item(self, namespace, identifier, typename=None):
         for item in self.content['item']:
             if (namespace == item['namespace'] and
                     identifier == item['identifier']):
                 item['lifecycle'] = 'o' # Item already assigned
                 return
-        self.content['item'].append(collections.OrderedDict(
-            [('namespace', namespace), ('identifier', identifier),
-             ('status', 'unstable'),
-             ('sid', -1), ('lifecycle', 'n')]))
+
+        if self.sid_extension and typename != None:
+            self.content['item'].append(collections.OrderedDict(
+                [('namespace', namespace), ('identifier', identifier),
+                ('status', 'unstable'),
+                ('sid', -1), ('lifecycle', 'n'),
+                ('type', typename)]))
+        else:
+            self.content['item'].append(collections.OrderedDict(
+                [('namespace', namespace), ('identifier', identifier),
+                ('status', 'unstable'),
+                ('sid', -1), ('lifecycle', 'n')]))
         self.is_consistent = False
 
     ########################################################
@@ -1019,6 +1112,11 @@ class SidFile:
     DESCRIPTION_REGEX = (r"Generated by pyang \d+(.\d+)?(.\d+)?(.)*" +
         r"at (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z)")
 
+    def find_sid(self, id):
+        for e in self.content['item']:
+            if e['identifier'] == id:
+                return e['sid']
+
     def generate_file(self):
         for item in self.content['item']:
             del item['lifecycle']
@@ -1055,7 +1153,10 @@ class SidFile:
                 srange['size'] = str(srange['size'])
 
         items = self.content.get('item', [])
+        myorderedstuff = self.content.copy()
         if items:
+            # XXX why do we need a separate myorderedstuff?
+            myorderedstuff['item'].sort(key=lambda item: item['sid'])
             sid_cont['item'] = copy.deepcopy(items)
             sid_cont['item'].sort(key=lambda item: item['sid'])
 
@@ -1068,10 +1169,27 @@ class SidFile:
             print("Finalizing unstable allocations to %s"
                   % (self.module_revision))
             for item in sid_cont['item']:
-                if item['status'] == 'unstable':
+                if item.get('status', 'stable') == 'unstable':
                     print("  finalized %s" % (item['identifier']))
                     # status 'stable' is default enum
                     del item['status']
+
+        if self.sid_extension:
+            key_mapping_sid = {}
+            for k, v in self.content['key-mapping'].items():
+                k_sid = self.find_sid(k)
+                v_sids = []
+                for e in v:
+                    v_sids.append(self.find_sid(e))
+                key_mapping_sid[k_sid] = v_sids
+
+                #print (key_mapping_sid)
+
+            #print ("<", self.content)
+            self.content['key-mapping'] = key_mapping_sid
+            #print (">", self.content)
+            myorderedstuff['key-mapping'] = key_mapping_sid
+
 
         with open(self.output_file_name, 'w', encoding='utf-8') as outfile:
             outfile.truncate(0)
@@ -1140,6 +1258,8 @@ class SidFile:
         for item in items:
             type_ = item.pop('type', None)
             label = item.pop('label', None)
+            typename = item.pop('type', None)
+
             if not type_:
                 pass
             elif type_ in ('Module', 'Submodule'):
