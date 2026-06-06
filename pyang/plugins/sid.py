@@ -60,7 +60,7 @@ class SidPlugin(plugin.PyangPlugin):
             optparse.make_option("--sid-extension",
                          action="store_true",
                          dest="sid_ext",
-                         help="Add info to the sid file to manipulate coreconf."),
+                         help="Add info to the sid file to manipulate CORECONF."),
             optparse.make_option("--sid-finalize",
                          action="store_true",
                          dest="finalize_sid",
@@ -244,17 +244,19 @@ OPTIONS
 
   $ pyang --sid-check-file toaster@2009-12-28.sid toaster@2009-12-28.yang
 
---sid-extension
-
-   Add non standard entries in the .sid file to facilitate CORECONF manipulation
-   on constrained devices. 
-
 --sid-list
 
   The --sid-list option can be used before any of the previous options to
   obtains the list of SIDs assigned or validated. For example:
 
   $ pyang --sid-list --sid-generate-file 20000:100 toaster@2009-11-20.yang
+
+--sid-extension
+
+   Add non standard entries in the .sid file to facilitate CORECONF manipulation
+   on constrained devices.
+
+  $ pyang --sid-list --sid-generate-file 20000:100 --sid-extension toaster@2009-11-20.yang
 
 --sid-finalize
 
@@ -526,6 +528,14 @@ class SidFile:
                     raise SidFileError("key 'item', invalid value.")
                 self.validate_items(self.content[key])
 
+            elif key == 'key-mapping':
+                if not isinstance(self.content[key], dict):
+                    raise SidFileError("key 'key-mapping', invalid value.")
+                self.validate_key_mapping(self.content[key])
+
+            else:
+                raise SidFileError("invalid field '%s'." % key)
+
         if module_name_absent:
             raise SidFileError("mandatory field 'module-name' not present")
 
@@ -618,6 +628,44 @@ class SidFile:
             if sid_absent:
                 raise SidFileError("mandatory field 'sid' not present")
 
+    def validate_key_mapping(self, key_mapping):
+        """Validate key-mapping structure.
+
+        key-mapping maps list SIDs to arrays of their key field SIDs.
+        Format: {"list_sid": [key1_sid, key2_sid, ...], ...}
+        """
+        for key, value in key_mapping.items():
+            # Validate key is a string representation of an integer (SID)
+            if not isinstance(key, str):
+                raise SidFileError(
+                    "key-mapping key must be a string, got '%s'." % type(key).__name__)
+
+            try:
+                key_sid = int(key)
+                if key_sid <= 0:
+                    raise ValueError
+            except (ValueError, TypeError):
+                raise SidFileError(
+                    "key-mapping key '%s' must be a positive integer." % key)
+
+            # Validate value is a list/array
+            if not isinstance(value, list):
+                raise SidFileError(
+                    "key-mapping value for key '%s' must be a list, got '%s'."
+                    % (key, type(value).__name__))
+
+            # Validate each element in the list is a positive integer (SID)
+            for idx, element in enumerate(value):
+                if not isinstance(element, util.int_types):
+                    raise SidFileError(
+                        "key-mapping value for key '%s' at index %d must be an integer, got '%s'."
+                        % (key, idx, type(element).__name__))
+
+                if element <= 0:
+                    raise SidFileError(
+                        "key-mapping value for key '%s' at index %d must be a positive integer, got %d."
+                        % (key, idx, element))
+
     ########################################################
     # Verify if each range defined in the .sid file is distinct
     def validate_overlapping_ranges(self):
@@ -697,7 +745,7 @@ class SidFile:
         if 'item' not in self.content:
             self.content['item'] = []
 
-        if self.sid_extension and 'key-mapping' not in self.content: 
+        if self.sid_extension and 'key-mapping' not in self.content:
             self.content['key-mapping'] = {}
 
         for item in self.content['item']:
@@ -764,36 +812,17 @@ class SidFile:
     def collect_inner_data_nodes(self, statements, prefix=""):
         for statement in statements:
             if statement.keyword in self.leaf_keywords:
-                typename = None
-                if self.sid_extension:
-                    for s in statement.substmts: # find type declaration
-                        if s.keyword == "type":
-                            if s.i_type_spec.name == "identityref":
-                                typename = "identityref"
+                self.collect_in_leaf(statement)
 
-                            elif s.i_type_spec.name == "enumeration":
-                                typename = {}
-                                for k, v in s.i_type_spec.enums:
-                                    typename[str(v)] = k
-                            else:
-                                typename = s.arg
-
-                            if typename=="union": # union put all types in an array
-                                typename = []
-                                for t in s.i_type_spec.types:
-                                    typename.append(t.arg)
-                self.merge_item('data', self.get_path(statement, prefix), typename)
             elif statement.keyword in self.container_keywords:
                 self.merge_item('data', self.get_path(statement, prefix))
-                if self.sid_extension:
-                    if statement.keyword == "list": # if list add list-id : [key-id, ...]
+                if self.sid_extension: # create key-mapping for list, with the path of the keys as value
+                    if statement.keyword == "list":
                         keys = []
-                        
-                        try: # LT don't kwon to check if i_key is present
+
+                        if hasattr(statement, 'i_key') and statement.i_key:
                             for k in statement.i_key:
                                 keys.append(self.get_path(k, prefix))
-                        except:
-                            pass
 
                         self.content["key-mapping"][self.get_path(statement, prefix)] = keys
                 self.collect_inner_data_nodes(statement.i_children, prefix)
@@ -822,11 +851,7 @@ class SidFile:
     def collect_in_substmts(self, substmts):
         for statement in substmts:
             if statement.keyword in self.leaf_keywords:
-                for stmt in statement.substmts: # debug
-                    if stmt.keyword == "type":
-                      #print (self.content)
-                      pass
-                self.merge_item('data', self.get_path(statement))
+                self.collect_in_leaf(statement)
 
             elif (statement.keyword in self.container_keywords or
                   statement.keyword in self.choice_keywords):
@@ -850,6 +875,29 @@ class SidFile:
         for substmt in submod.substmts:
             if substmt.keyword == 'augment':
                 self.collect_in_substmts(substmt.substmts)
+
+    def collect_in_leaf(self, statement):
+        if self.sid_extension:
+            for s in statement.substmts: # find type declaration
+                if s.keyword == "type":
+                    if s.i_type_spec.name == "identityref":
+                        typename = "identityref"
+
+                    elif s.i_type_spec.name == "enumeration":
+                        typename = {}
+                        for k, v in s.i_type_spec.enums:
+                            typename[str(v)] = k
+                    else:
+                        typename = s.arg
+
+                    if typename=="union": # union put all types in an array
+                        typename = []
+                        for t in s.i_type_spec.types:
+                            if t.i_type_spec.name == "identityref":
+                                typename.insert(0, "identityref") # put identityref first in the list as it is more specific than other types
+                            else:
+                                typename.append(t.arg)
+        self.merge_item('data', self.get_path(statement), typename if self.sid_extension else None)
 
     def get_path(self, statement, prefix=""):
         path = ""
@@ -903,12 +951,12 @@ class SidFile:
                 item['lifecycle'] = 'o' # Item already assigned
                 return
 
-        if self.sid_extension and typename != None:
+        if self.sid_extension and typename is not None:
             self.content['item'].append(collections.OrderedDict(
                 [('namespace', namespace), ('identifier', identifier),
-                ('status', 'unstable'),
-                ('sid', -1), ('lifecycle', 'n'),
-                ('type', typename)]))
+                 ('status', 'unstable'),
+                 ('sid', -1), ('lifecycle', 'n'),
+                 ('type', typename)]))
         else:
             self.content['item'].append(collections.OrderedDict(
                 [('namespace', namespace), ('identifier', identifier),
@@ -1116,6 +1164,8 @@ class SidFile:
         for e in self.content['item']:
             if e['identifier'] == id:
                 return e['sid']
+        return None
+
 
     def generate_file(self):
         for item in self.content['item']:
@@ -1183,15 +1233,10 @@ class SidFile:
                     v_sids.append(self.find_sid(e))
                 key_mapping_sid[k_sid] = v_sids
 
-                #print (key_mapping_sid)
-
-            #print ("<", self.content)
-            self.content['key-mapping'] = key_mapping_sid
-            #print (">", self.content)
-            myorderedstuff['key-mapping'] = key_mapping_sid
+            sid_cont['key-mapping'] = key_mapping_sid
 
 
-        with open(self.output_file_name, 'w', encoding='utf-8') as outfile:
+        with open(self.output_file_name, 'w') as outfile:
             outfile.truncate(0)
             json.dump({self.IETF_SID_FILE: sid_cont}, outfile, indent=2)
 
