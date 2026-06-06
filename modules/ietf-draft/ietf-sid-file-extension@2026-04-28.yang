@@ -8,6 +8,11 @@ module ietf-sid-file-extension {
     reference "RFC 9595";
   }
 
+  import ietf-yang-structure-ext {
+    prefix sx;
+    reference "RFC 8791";
+  }
+
   organization "Personal contribution";
   contact
     "Editor: Laurent Toutain
@@ -19,6 +24,9 @@ module ietf-sid-file-extension {
   revision 2026-04-28 {
     description "Initial revision.";
   }
+
+  // it may be better if NETMOD created a YANG Module
+  // with identities for built-in types
 
   identity yang-base-type {
     description "Base identity for all YANG built-in types.";
@@ -129,43 +137,42 @@ module ietf-sid-file-extension {
   }
 
   // --- Augmentation 1 : dans le grouping, via son point d'utilisation ---
-  augment "/sid:sid-file/sid:item" {
+  sx:augment-structure "/sid:sid-file/sid:item" {
     description
       "Adds type information to each SID item.";
-      leaf type {
-        leaf base-type {
-          type yang-type;
+    container type {
+      leaf base-type {
+        type yang-type;
+      }
+      leaf identityref {
+        type uint64;
+        description "SID of the referenced identity.";
+      }
+      container enumerate {
+        leaf enum-value {
+          type uint32;
+          description "Value of the enumeration item.";
         }
-        leaf identityref {
-          type uint64;
-          description "SID of the referenced identity.";
-        }
-        leaf enumerate {
-            leaf enum-value {
-              type uint32;
-              description "Value of the enumeration item.";
-            }
-            leaf enum-name {
-              type string;
-              description "Name of the enumeration item.";
-            }
-        }
-        leaf bits {
-            leaf bit-position {
-              type uint32;
-              description "Position of the bit item.";
-            }
-            leaf bit-name {
-              type string;
-              description "Name of the bit item.";
-            }
+        leaf enum-name {
+          type string;
+          description "Name of the enumeration item.";
         }
       }
+      container bits {
+        leaf bit-position {
+          type uint32;
+          description "Position of the bit item.";
+        }
+        leaf bit-name {
+          type string;
+          description "Name of the bit item.";
+        }
+      }
+    }
   }
-}
 
   // --- Augmentation 2 : au niveau sid-file, hors item ---
-  augment "/sid:sid-file" {
+  sx:augment-structure "/sid:sid-file" {
     description
       "Adds key-mapping at the sid-file level.";
     container key-mapping {
@@ -186,3 +193,5 @@ module ietf-sid-file-extension {
       }
     }
   }
+}
+
