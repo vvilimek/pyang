@@ -968,7 +968,9 @@ class SidFile:
     # Create list of dependent module with optional revision
     # Call only after validate_dep_revisions()
     def build_dependencies(self, module):
-        if 'dependency-revision' not in self.content:
+        imports = module.search('import')
+
+        if 'dependency-revision' not in self.content and len(imports) > 0:
             self.content['dependency-revision'] = []
             had_dep_rev = False
         else:
