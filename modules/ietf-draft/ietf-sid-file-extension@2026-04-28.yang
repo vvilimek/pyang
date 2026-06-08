@@ -143,15 +143,15 @@ module ietf-sid-file-extension {
     // the /sid:sid-file is sx:structure, not grouping (even through it is defined inside grouping)
     description
       "Adds type information to each SID item.";
-    container type {
+    list type {
       leaf base-type {
         type yang-type;
       }
-      leaf identityref {
+      leaf-list identityref {
         type uint64;
         description "SID of the referenced identity.";
       }
-      container enumerate {
+      list enumerate {
         leaf enum-value {
           type uint32;
           description "Value of the enumeration item.";
@@ -161,7 +161,7 @@ module ietf-sid-file-extension {
           description "Name of the enumeration item.";
         }
       }
-      container bits {
+      list bits {
         leaf bit-position {
           type uint32;
           description "Position of the bit item.";
