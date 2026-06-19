@@ -724,21 +724,6 @@ class SidFile:
         except AttributeError:
             return False
 
-    @staticmethod
-    def has_structure_extension(statement):
-        try:
-            return statement.i_extension.arg == 'structure'
-
-        except AttributeError:
-            return False
-
-    @staticmethod
-    def has_yang_structure_extension(statement):
-        try:
-            return statement.i_extension.arg == 'structure'
-        except AttributeError:
-            return False
-
     ########################################################
     # Collection of items defined in .yang file(s)
     def collect_module_items(self, module):
