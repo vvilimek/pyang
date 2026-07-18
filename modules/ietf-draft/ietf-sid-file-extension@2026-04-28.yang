@@ -16,7 +16,9 @@ module ietf-sid-file-extension {
   organization "Personal contribution";
   contact
     "Editor: Laurent Toutain
-      <mailto:laurent.toutain@imt-atlantique.fr>";
+      <mailto:laurent.toutain@imt-atlantique.fr>
+             Vojtěch Vilímek
+             <mailto:vojtech.vilimek@nic.cz>";
   description
     "Augmentation of ietf-sid-file to add type information
      per item and key-mapping at the sid-file level.";
@@ -146,31 +148,47 @@ module ietf-sid-file-extension {
     list type {
       leaf base-type {
         type yang-type;
+        mandatory true;
+        description "YANG base type of the leaf or leaf-list,
+                     this may be defined in the root of typedef chain.";
       }
-      leaf-list identityref {
-        type uint64;
-        description "SID of the referenced identity.";
+      leaf name {
+         type string;
+         mandatory false;
+         description "YANG typedef identifier if it exists";
       }
-      list enumerate {
-        leaf enum-value {
-          type uint32;
-          description "Value of the enumeration item.";
-        }
-        leaf enum-name {
+      leaf-list identityref-base {
+        type sid:sid;
+        description "";
+        // TODO: add when condition "base-type == identityref"
+      }
+      list enumeration {
+        key name;
+        unique value;
+        leaf name {
           type string;
           description "Name of the enumeration item.";
         }
+        leaf value {
+          type int32;
+          description "Value of the enumeration item.";
+          mandatory true;
+        }
       }
       list bits {
-        leaf bit-position {
-          type uint32;
-          description "Position of the bit item.";
-        }
-        leaf bit-name {
+        key name;
+        unique position;
+        leaf name {
           type string;
           description "Name of the bit item.";
         }
+        leaf position {
+          type uint32;
+          description "Position of the bit item.";
+          mandatory true;
+        }
       }
+      description "Extension providing additional information for types of leaf and leaf-list nodes.";
     }
   }
  
@@ -186,6 +204,9 @@ module ietf-sid-file-extension {
       list entry {
         key "list-sid";
         leaf list-sid {
+           // DISCUSS: wouldn't it be better to instance-identifier to keep it closer 
+           //   to the YANG ecosystem; such change is going to make the implementation
+           //   more complex as additional translation is needed.
           type sid:sid;
           description "SID of the list node.";
         }
