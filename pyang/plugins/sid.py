@@ -616,6 +616,9 @@ class SidFile:
                         raise SidFileError("invalid 'status' value '%s'."
                                            % item[key])
 
+                elif key == "ietf-sid-file-extension:type":
+                    pass
+
                 else:
                     raise SidFileError("invalid key '%s'." % key)
 
@@ -861,28 +864,67 @@ class SidFile:
             if substmt.keyword == 'augment':
                 self.collect_in_substmts(substmt.substmts)
 
+    def get_type_spec(self, type_spec):
+        if type_spec == "union":
+            ext_list = []
+            for sub_type_spec in type_spec.type:
+                ext_list.extend(self.get_type_spec(sub_type_spec)) 
+            return ext_list
+
+        type_ext = collections.OrderedDict()
+        if type_spec.name == "identityref":
+            type_ext["base-type"] = "identityref"
+            all_bases = []
+            #for base in type_spec.base:
+            #    pass
+            type_ext["identityref"] = all_bases
+        elif type_spec.name == "enumeration":
+            type_ext["base-type"] = "enumeration"
+            enums = []
+            for name, value in type_spec.enums:
+                enums.append(
+                    collections.OrderedDict((("name", name), ("value", value)))
+                )
+            type_ext["enumeration"] = enums
+        elif type_spec.name == "bits":
+            type_ext["base-type"] = "bits"
+            bits = []
+            for name, value in type_spec.bits:
+                bits.append(
+                    collections.OrderedDict((("name", name), ("position", position)))
+                )
+            type_ext["bits"] = bits
+
+        # case for all YANG built-in types that do not need
+        # special treatment (e.g. uint32)
+        else:
+            type_ext["base-type"] = type_spec.name
+
+        return [type_ext]
+
+
     def collect_in_leaf(self, statement):
+        if statement.keyword in ("anyxml", "anydata"):
+            self.merge_item('data', self.get_path(statement), None)
+            return
+
         if self.sid_extension:
             for s in statement.substmts: # find type declaration
                 if s.keyword == "type":
-                    if s.i_type_spec.name == "identityref":
-                        typename = "identityref"
+                    spec_list = []
+                    if s.arg == "union":
+                        # TODO FIXME
+                        if not hasattr(s, "type"):
+                            return spec_list
 
-                    elif s.i_type_spec.name == "enumeration":
-                        typename = {}
-                        for k, v in s.i_type_spec.enums:
-                            typename[str(v)] = k
+                        for type_stmt in s.type:
+                            spec_list.extend(self.get_type_spec(type_stmt.i_type_spec))
                     else:
-                        typename = s.arg
+                        spec_list = self.get_type_spec(s.i_type_spec)
 
-                    if typename=="union": # union put all types in an array
-                        typename = []
-                        for t in s.i_type_spec.types:
-                            if t.i_type_spec.name == "identityref":
-                                typename.insert(0, "identityref") # put identityref first in the list as it is more specific than other types
-                            else:
-                                typename.append(t.arg)
-        self.merge_item('data', self.get_path(statement), typename if self.sid_extension else None)
+                    break
+
+        self.merge_item('data', self.get_path(statement), spec_list if self.sid_extension else None)
 
     def get_path(self, statement, prefix=""):
         path = ""
@@ -941,7 +983,7 @@ class SidFile:
                 [('namespace', namespace), ('identifier', identifier),
                  ('status', 'unstable'),
                  ('sid', -1), ('lifecycle', 'n'),
-                 ('type', typename)]))
+                 ('ietf-sid-file-extension:type', typename)]))
         else:
             self.content['item'].append(collections.OrderedDict(
                 [('namespace', namespace), ('identifier', identifier),
