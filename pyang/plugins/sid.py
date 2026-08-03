@@ -1264,7 +1264,7 @@ class SidFile:
             'submodules' : submodules,
         }
 
-        for arange in self.content('assignment-range') or []:
+        for arange in self.content.get('assignment-range') or []:
             ranges.append({
                 'entry_point' : arange['entry-point'],
                 'size' : arange['size'],
