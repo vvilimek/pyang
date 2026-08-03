@@ -379,6 +379,11 @@ class SidFile:
         self.collect_module_items(module)
         self.build_dependencies(module)
 
+        if self.range == 'count' and self.sid_registration_info:
+            number_of_unassigned_yang_items = \
+                    self.number_of_unassigned_yang_items()
+            print(json.dumps({"unassigned-items": str(number_of_unassigned_yang_items)}))
+            return
         if self.range == 'count':
             number_of_unassigned_yang_items = \
                     self.number_of_unassigned_yang_items()
@@ -1004,8 +1009,8 @@ class SidFile:
                         ##assert re.match('[0-9]{4}-[0-9]{2}-[0-9]{2}', latest)
 
                         revision = latest
-                        print(f"WARNING: Module '{module_name}' imported " +
-                            f"without revision, using latest revision {latest}")
+                        sys.stderr.write(f"WARNING: Module '{module_name}' imported " +
+                            f"without revision, using latest revision {latest}\n")
 
                 if revision is None and module_name in module.i_ctx.revs:
                     latest = ''
@@ -1021,8 +1026,8 @@ class SidFile:
                         f'"{module_name}" with revision statement found.')
 
                     revision = latest
-                    print(f"WARNING: Module '{module_name}' imported without " +
-                        f"revision, using latest revision {latest}")
+                    sys.stderr.write(f"WARNING: Module '{module_name}' imported without " +
+                        f"revision, using latest revision {latest}\n")
 
                 if revision is None:
                     raise SidFileError(f"Missing revision for module " +
@@ -1124,16 +1129,16 @@ class SidFile:
                 % (item['sid'], item['namespace'], item['identifier'], status))
 
         if definition_removed:
-            print(
+            sys.stderr.write(
                 "\nWARNING, obsolete definitions should be defined " +
-                "as 'deprecated' or 'obsolete'.")
+                "as 'deprecated' or 'obsolete'.\n")
 
     ########################################################
     def list_deleted_items(self):
         definition_removed = False
         for item in self.content['item']:
             if item['lifecycle'] == 'd':
-                print("WARNING, item '%s' was deleted form the .yang files."
+                sys.stderr.write("WARNING, item '%s' was deleted form the .yang files.\n"
                       % item['identifier'])
                 definition_removed = True
 
