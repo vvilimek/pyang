@@ -1,0 +1,9 @@
+/test-with-key-mapping:devices/device /test-with-key-mapping:devices/device 40002
+/test-with-key-mapping:devices/device/device-id /test-with-key-mapping:devices/device/device-id 40003
+/test-with-key-mapping:devices/interface /test-with-key-mapping:devices/interface 40005
+/test-with-key-mapping:devices/interface/if-name /test-with-key-mapping:devices/interface/if-name 40006
+/test-with-key-mapping:devices/interface/if-type /test-with-key-mapping:devices/interface/if-type 40007
+
+File test-with-key-mapping@2026-04-16.sid created
+Number of SIDs available : 20
+Number of SIDs used : 9
